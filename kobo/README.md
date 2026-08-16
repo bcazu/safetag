@@ -2,13 +2,41 @@
 
 Aquí vive el formulario de captura en campo para KoboToolbox.
 
-- `atc20.xlsx` — XLSForm del formulario ATC-20 adaptado (pendiente de diseñar,
-  ver checklist en `docs/triage-estructural-post-sismo.md` §6).
-- Campos núcleo: GPS automático, dirección, barrio, sistema constructivo,
-  número de pisos, checklist de señales de alarma, secuencia obligatoria de
-  fotos (fachada, esquinas, peor grieta con referencia de escala, columnas
-  de primer piso).
+- `atc20.xlsx` — XLSForm del formulario. Se regenera con un script si hay que
+  cambiarlo, o se edita directo en Excel/LibreOffice (hojas `survey`,
+  `choices`, `settings`). Validar cambios con
+  `pip install pyxform && xls2xform kobo/atc20.xlsx /tmp/out.xml`.
 - El formulario debe validarse con un ingeniero estructural antes del piloto.
+
+## Campos y mapeo al esquema
+
+Los nombres de campo están en español (los ven los brigadistas); el webhook
+(`supabase/functions/kobo-webhook`) los traduce a las columnas en inglés.
+
+| Campo XLSForm | Tipo | Columna en `cases` |
+|---|---|---|
+| `direccion` | text, obligatorio | `address` |
+| `barrio` (+ `barrio_otro` si "otro") | select_one comunas de Pereira | `neighborhood` |
+| `gps` | geopoint obligatorio (+ `start-geopoint` de respaldo) | `location` |
+| `sistema_constructivo` | select_one | `construction_system` |
+| `num_pisos` | integer 1–50 | `num_floors` |
+| `senales_alarma` | select_multiple (incluye "ninguna", excluyente) | `warning_signs` (array jsonb) |
+
+Secuencia de fotos (tipo image; KoboCollect comprime con `max-pixels`):
+
+| Campo | Obligatoria | `photo_type` en `photos` |
+|---|---|---|
+| `foto_fachada` | sí | `fachada` |
+| `foto_esquina_1`, `foto_esquina_2` | sí | `esquina_1`, `esquina_2` |
+| `foto_esquina_3`, `foto_esquina_4` | no (esquinas inaccesibles) | `esquina_3`, `esquina_4` |
+| `foto_grieta` (con moneda de escala; max-pixels 2048) | sí | `grieta` |
+| `foto_columnas` | sí | `columnas` |
+
+El webhook descarga los adjuntos de la API de Kobo (requiere el secret
+`KOBO_API_TOKEN` en las Edge Functions) y los sube al bucket privado `photos`
+como `cases/<case_id>/<campo>.<ext>`, registrando metadatos en
+`public.photos`. Si una foto falla, el caso se guarda igual (best-effort) y
+el error queda en los logs de la función.
 
 El XLSForm es portable a ArcGIS Survey123 sin reescritura si la alianza con
 la alcaldía lo requiere.

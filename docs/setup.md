@@ -42,12 +42,11 @@ que PostGIS aparece en **Database → Extensions**.
 > están en `0002_grants.sql` (los proyectos nuevos de Supabase no los dan
 > por defecto).
 
-### 1.3 Storage para fotos [manual]
+### 1.3 Storage para fotos
 
-1. **Storage → New bucket**: nombre `photos`, **privado** (acceso vía URLs
-   firmadas, integrado con RLS).
-2. Límite de tamaño de archivo sugerido: 5 MB (la compresión client-side
-   apunta a ~300 KB por foto).
+El bucket `photos` (privado, 5 MB máx., solo imágenes) se crea con la
+migración `0003_storage.sql` — lo aplica el mismo `db push`, no hay paso
+manual. Verificar en **Storage** del dashboard que existe.
 
 ### 1.4 Desplegar la Edge Function del webhook
 
@@ -56,9 +55,16 @@ que PostGIS aparece en **Database → Extensions**.
 openssl rand -hex 32
 pnpm exec supabase secrets set KOBO_WEBHOOK_SECRET=<el-secreto>
 
+# Token de la API de Kobo, para descargar las fotos adjuntas
+# (KoboToolbox → Account Settings → Security → API Key)
+pnpm exec supabase secrets set KOBO_API_TOKEN=<token-de-kobo>
+
 # --no-verify-jwt: Kobo no envía JWT de Supabase; autentica con el secreto propio
 pnpm exec supabase functions deploy kobo-webhook --no-verify-jwt
 ```
+
+Sin `KOBO_API_TOKEN` el webhook guarda el caso pero omite las fotos (queda
+un warning en los logs de la función).
 
 La URL resultante es:
 `https://<project-ref>.supabase.co/functions/v1/kobo-webhook`
@@ -83,27 +89,14 @@ Debe responder `ok` y aparecer una fila en `cases`.
 1. Cuenta gratuita en <https://kf.kobotoolbox.org> (servidor global; el plan
    Community es suficiente y para uso humanitario hay límites ampliados —
    solicitar el plan humanitario desde el perfil si el volumen crece).
-2. **New project → Build from scratch** (o **Upload an XLSForm** cuando exista
-   `kobo/atc20.xlsx`).
+2. **New project → Upload an XLSForm** → subir `kobo/atc20.xlsx` → **Deploy**.
 
-### 2.2 Formulario ATC-20 (resumen; el diseño fino va en `kobo/`)
+### 2.2 Formulario ATC-20
 
-Campos mínimos, en este orden:
-
-1. `direccion` (texto) y `barrio` (select_one con la lista de barrios).
-2. `gps` (tipo **geopoint**, obligatorio).
-3. `sistema_constructivo` (select_one: mampostería confinada / no confinada,
-   pórticos de concreto, otro).
-4. `num_pisos` (integer).
-5. `senales_alarma` (select_multiple: grietas en X, grietas horizontales en
-   base de columnas, refuerzo expuesto, pisos desnivelados, separación
-   muro-estructura, grietas > 3 mm).
-6. Secuencia de fotos **obligatorias** (tipo image, una pregunta por foto):
-   fachada completa, cada esquina, peor grieta de cerca con moneda de
-   referencia, columnas del primer piso.
-
-Activar en la configuración del formulario: **GPS automático en segundo
-plano** (metadato `start-geopoint`) como respaldo del geopoint manual.
+El formulario completo vive en `kobo/atc20.xlsx` (campos, listas de opciones
+y mapeo al esquema documentados en `kobo/README.md`). Incluye GPS automático
+en segundo plano (`start-geopoint`) como respaldo del geopoint manual y
+compresión de fotos client-side (`max-pixels`).
 
 ### 2.3 Webhook hacia Supabase [manual]
 
