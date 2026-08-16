@@ -1,0 +1,14 @@
+{
+  "name": "safetag",
+  "private": true,
+  "description": "Post-earthquake structural triage platform: field capture (KoboToolbox), remote review by structural engineers, and prioritization for emergency response.",
+  "scripts": {
+    "dev:web": "pnpm --filter web dev",
+    "dev:brigada": "pnpm --filter brigada dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
