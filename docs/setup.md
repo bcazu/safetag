@@ -32,17 +32,19 @@ pnpm exec supabase link --project-ref <project-ref>   # pide la DB password
 pnpm exec supabase db push        # aplica supabase/migrations/0001_schema.sql
 ```
 
-Verificar en el dashboard (**Database → Tables**) que existen `casos`, `fotos`,
-`dictamenes`, `revisores`, `brigadistas`, `ubicaciones_brigada`, `alertas`, y
+Verificar en el dashboard (**Database → Tables**) que existen `cases`, `photos`,
+`assessments`, `reviewers`, `brigade_members`, `brigade_locations`, `alerts`, y
 que PostGIS aparece en **Database → Extensions**.
 
 > Nota: RLS está habilitado en todas las tablas pero **sin políticas aún** —
-> nadie puede leer/escribir con la anon key hasta la migración 0002 (políticas
-> por rol). Es intencional: cerrado por defecto.
+> nadie puede leer/escribir con la anon key hasta la migración de políticas
+> por rol. Es intencional: cerrado por defecto. Los grants de DML por rol
+> están en `0002_grants.sql` (los proyectos nuevos de Supabase no los dan
+> por defecto).
 
 ### 1.3 Storage para fotos [manual]
 
-1. **Storage → New bucket**: nombre `fotos`, **privado** (acceso vía URLs
+1. **Storage → New bucket**: nombre `photos`, **privado** (acceso vía URLs
    firmadas, integrado con RLS).
 2. Límite de tamaño de archivo sugerido: 5 MB (la compresión client-side
    apunta a ~300 KB por foto).
@@ -70,7 +72,7 @@ curl -X POST https://<project-ref>.supabase.co/functions/v1/kobo-webhook \
   -d '{"_id": 1, "_geolocation": [4.813, -75.696], "direccion": "Cra 7 # 18-20", "barrio": "Centro"}'
 ```
 
-Debe responder `ok` y aparecer una fila en `casos`.
+Debe responder `ok` y aparecer una fila en `cases`.
 
 ---
 
@@ -110,7 +112,7 @@ plano** (metadato `start-geopoint`) como respaldo del geopoint manual.
 3. Tipo: JSON.
 4. **Custom HTTP Headers**: `x-webhook-secret` = el secreto del paso 1.4.
 5. Enviar un submission de prueba desde el navegador (**Collect data → Open**)
-   y verificar que llega a la tabla `casos`.
+   y verificar que llega a la tabla `cases`.
 
 > Los nombres de campo del XLSForm deben coincidir con los que mapea
 > `supabase/functions/kobo-webhook/index.ts` — ajustar el TODO de esa función
@@ -193,10 +195,10 @@ Studio local: <http://localhost:54323>. Las apps apuntan al entorno local con
 ## Checklist de verificación end-to-end
 
 - [ ] `supabase db push` aplicó el esquema y PostGIS está activo
-- [ ] Bucket `fotos` creado (privado)
-- [ ] Edge Function desplegada y el `curl` de prueba inserta en `casos`
+- [ ] Bucket `photos` creado (privado)
+- [ ] Edge Function desplegada y el `curl` de prueba inserta en `cases`
 - [ ] Formulario Kobo publicado con webhook + secreto configurado
-- [ ] Submission real desde KoboCollect (offline → sync) aparece en `casos`
+- [ ] Submission real desde KoboCollect (offline → sync) aparece en `cases`
 - [ ] Ambas apps desplegadas en Vercel con sus variables de entorno
 - [ ] Decidido proveedor de tiles para producción (OpenFreeMap por defecto)
 

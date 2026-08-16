@@ -162,35 +162,39 @@ El contexto lo justifica: brigadistas entrando a zonas con estructuras dañadas 
 
 ## 5. Esquema de datos (núcleo)
 
+Identificadores en inglés (convención); los campos del XLSForm de Kobo quedan
+en español y el webhook hace el mapeo.
+
 ```sql
 -- Casos de evaluación (poblados por webhook de Kobo)
-casos (
+cases (
   id uuid pk,
   kobo_submission_id text unique,
-  ubicacion geography(point),      -- PostGIS
-  direccion text,
-  barrio text,
-  sistema_constructivo text,
-  num_pisos int,
-  senales_alarma jsonb,            -- checklist del formulario
-  prioridad int default 50,        -- manual v1, IA fase 2
-  estado text default 'pendiente', -- pendiente | en_revision | dictaminado
+  location geography(point),       -- PostGIS
+  address text,
+  neighborhood text,
+  construction_system text,
+  num_floors int,
+  warning_signs jsonb,             -- checklist del formulario
+  priority int default 50,         -- manual v1, IA fase 2
+  status text default 'pending',   -- pending | in_review | assessed
   created_at timestamptz
 )
 
-fotos (id, caso_id fk, storage_path, tipo_foto, exif_gps geography(point), ia_detecciones jsonb null)
+photos (id, case_id fk, storage_path, photo_type, exif_gps geography(point), ai_detections jsonb null)
 
-dictamenes (id, caso_id fk, revisor_id fk, resultado text,  -- verde|amarillo|rojo|visita_presencial
-            observaciones text, firmado_at timestamptz)
+-- Dictámenes firmados
+assessments (id, case_id fk, reviewer_id fk, result text,  -- green|yellow|red|site_visit
+             notes text, signed_at timestamptz)
 
-revisores (id, user_id fk auth.users, nombre, matricula_profesional, verificado bool)
+reviewers (id, user_id fk auth.users, name, professional_license, verified bool)
 
-brigadistas (id, user_id fk, nombre, telefono, estado text)  -- activo | en_mision | fuera
+brigade_members (id, user_id fk, name, phone, status text)  -- active | on_mission | off_duty
 
-ubicaciones_brigada (id, brigadista_id fk, posicion geography(point), reportado_at)  -- TTL 24h
+brigade_locations (id, brigade_member_id fk, position geography(point), reported_at)  -- TTL 24h
 
-alertas (id, brigadista_id fk, tipo text,  -- panico | checkin_vencido
-         posicion geography(point), created_at, atendida_por fk null, atendida_at null)
+alerts (id, brigade_member_id fk, type text,  -- panic | missed_checkin
+        position geography(point), created_at, handled_by fk null, handled_at null)
 ```
 
 RLS: revisores leen casos y escriben solo sus dictámenes; brigadistas escriben solo su ubicación/alertas; rol PMU lee todo; nadie borra nada (auditoría).

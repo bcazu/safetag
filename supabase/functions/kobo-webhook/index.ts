@@ -1,4 +1,6 @@
-// Edge Function: webhook de KoboToolbox → inserta caso en `casos`.
+// Edge Function: webhook de KoboToolbox → inserta caso en `cases`.
+// Los campos del submission llegan con los nombres del XLSForm (en español);
+// aquí se mapean a las columnas en inglés del esquema.
 // Kobo envía un POST JSON por cada submission (REST Services / webhooks).
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -26,21 +28,24 @@ Deno.serve(async (req) => {
     | null
   )[];
 
-  const { error } = await supabase.from("casos").insert({
+  const { error } = await supabase.from("cases").insert({
     kobo_submission_id: String(submission._id),
-    ubicacion: lat != null && lon != null ? `POINT(${lon} ${lat})` : null,
-    direccion: submission.direccion ?? null,
-    barrio: submission.barrio ?? null,
-    sistema_constructivo: submission.sistema_constructivo ?? null,
-    num_pisos: submission.num_pisos ?? null,
-    senales_alarma: submission.senales_alarma ?? null,
+    location: lat != null && lon != null ? `POINT(${lon} ${lat})` : null,
+    address: submission.direccion ?? null,
+    neighborhood: submission.barrio ?? null,
+    construction_system: submission.sistema_constructivo ?? null,
+    num_floors: submission.num_pisos ?? null,
+    warning_signs: submission.senales_alarma ?? null,
   });
 
   if (error) {
     // 23505 = duplicado (reintento de Kobo): responder 200 para que no reintente
     if (error.code === "23505") return new Response("ok (duplicate)");
     console.error(error);
-    return new Response("Insert failed", { status: 500 });
+    return new Response(
+      JSON.stringify({ code: error.code, message: error.message, details: error.details }),
+      { status: 500, headers: { "content-type": "application/json" } },
+    );
   }
 
   return new Response("ok");
