@@ -1,6 +1,7 @@
 {
   "name": "safetag",
   "private": true,
+  "packageManager": "pnpm@10.14.0",
   "description": "Post-earthquake structural triage platform: field capture (KoboToolbox), remote review by structural engineers, and prioritization for emergency response.",
   "scripts": {
     "dev:web": "pnpm --filter web dev",
