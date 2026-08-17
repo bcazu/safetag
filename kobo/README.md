@@ -26,6 +26,7 @@ traduce nombres y slugs a las columnas en inglés de `cases` (migración 0004).
 
 | Sección AIS | Campo XLSForm | Columna en `cases` |
 |---|---|---|
+| — | `aviso_comunicado` (aviso de privacidad) | *(no se mapea; queda en el registro crudo de Kobo como evidencia de la comunicación del aviso — ver `docs/politica-datos.md`)* |
 | 2 | `tipo_inspeccion` | `inspection_type` (`exterior/partial/complete/not_inspected`) |
 | 2 | `motivo_no_inspeccion` | `not_inspected_reason` |
 | 1 | `comuna` / `barrio` / `id_catastral` | `commune` / `neighborhood` / `cadastral_id` |

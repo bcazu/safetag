@@ -68,12 +68,27 @@ survey = [
     {"type": "end", "name": "end"},
     {"type": "start-geopoint", "name": "gps_fondo"},
 
-    # aviso de privacidad (T6 lo ampliará con consentimiento formal)
+    # aviso de privacidad + confirmación (T6; política completa en
+    # docs/politica-datos.md). Cuando se agreguen las secciones 10-12
+    # (ocupantes/contacto), añadir aquí el consentimiento expreso para datos
+    # sensibles, con mención de que el titular NO está obligado a autorizarlo.
     {"type": "note", "name": "aviso_privacidad",
-     "label": {"es": "Esta inspección registra ubicación, características y "
-                     "fotos de la edificación para priorizar la evaluación "
-                     "estructural post-sismo. Los datos se tratan bajo la "
-                     "Ley 1581 de 2012."}},
+     "label": {"es": "AVISO DE PRIVACIDAD — Esta inspección registra "
+                     "ubicación, características y fotografías de la "
+                     "edificación (solo exteriores y elementos "
+                     "estructurales, no personas ni interiores habitados "
+                     "salvo lo estrictamente necesario) para priorizar la "
+                     "evaluación estructural post-sismo. Tratamiento según "
+                     "la Ley 1581 de 2012; política completa disponible con "
+                     "la entidad coordinadora. La clasificación resultante "
+                     "es un insumo de priorización: la habilitación "
+                     "definitiva es competencia de las autoridades."}},
+    {"type": "select_one confirmaciones", "name": "aviso_comunicado",
+     "label": {"es": "¿Informaste al ocupante o responsable del inmueble el "
+                     "propósito de la inspección y el aviso de privacidad?"},
+     "required": "yes",
+     "hint": {"es": "Si no hay nadie presente, marca «No aplica (inmueble "
+                    "desocupado o sin acceso)»"}},
 
     # ── Sección 2: tipo de inspección ────────────────────────────────────
     {"type": "select_one tipos_inspeccion", "name": "tipo_inspeccion",
@@ -201,6 +216,11 @@ survey = [
 
 # ── Listas de opciones ───────────────────────────────────────────────────────
 
+confirmaciones = [
+    ("si", {"es": "Sí"}),
+    ("no_aplica", {"es": "No aplica (inmueble desocupado o sin acceso)"}),
+]
+
 tipos_inspeccion = [
     ("exterior", {"es": "Solo exterior"}),
     ("parcial", {"es": "Parcial (exterior + algunas zonas interiores)"}),
@@ -321,6 +341,7 @@ senales = [
 ]
 
 CHOICES = [
+    ("confirmaciones", confirmaciones),
     ("tipos_inspeccion", tipos_inspeccion),
     ("motivos_no_inspeccion", motivos_no_inspeccion),
     ("comunas", comunas),
@@ -367,7 +388,7 @@ for list_name, items in CHOICES:
 
 ws = wb.create_sheet("settings")
 ws.append(["form_title", "form_id", "version", "default_language"])
-ws.append(["SafeTag — Formulario Único AIS (v1)", "safetag_ais", "2026081603",
+ws.append(["SafeTag — Formulario Único AIS (v1)", "safetag_ais", "2026081604",
            DEFAULT_LANG])
 
 out = Path(__file__).parent / "ais.xlsx"
