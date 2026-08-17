@@ -159,7 +159,8 @@ Deno.serve(async (req) => {
         NOT_INSPECTED_REASON,
         submission.motivo_no_inspeccion,
       ),
-      // sección 1
+      // sección 1 (municipio = código DIVIPOLA, tal cual)
+      municipality: submission.municipio ?? null,
       commune: submission.comuna ?? null,
       neighborhood: submission.barrio ?? null,
       cadastral_id: submission.id_catastral ?? null,

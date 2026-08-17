@@ -117,6 +117,15 @@
     "60_100": "60–100 %",
     "100": "100 % (colapso)"
   },
+  "municipality": {
+    "66001": "Pereira",
+    "66170": "Dosquebradas",
+    "66682": "Santa Rosa de Cabal",
+    "66400": "La Virginia",
+    "76001": "Cali",
+    "27001": "Quibdó",
+    "otro": "Otro municipio"
+  },
   "buildingUse": {
     "1": "Residencial",
     "2": "Comercial",

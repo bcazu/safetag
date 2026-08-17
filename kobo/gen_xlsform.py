@@ -27,7 +27,7 @@ DEFAULT_LANG = "Español (es)"
 
 I18N_COLS = ["label", "hint", "constraint_message"]
 PLAIN_COLS = ["type", "name", "required", "appearance", "relevant",
-              "constraint", "parameters"]
+              "constraint", "parameters", "choice_filter"]
 
 # Relevancia común: todo salvo secciones 1-2 se oculta si no se inspeccionó
 INSPECTED = "${tipo_inspeccion} != 'no_inspeccionada'"
@@ -98,8 +98,13 @@ survey = [
      "relevant": "${tipo_inspeccion} = 'no_inspeccionada'"},
 
     # ── Sección 1: identificación catastral ──────────────────────────────
+    # Jerarquía territorial: municipio (código DIVIPOLA) → comuna → barrio.
+    # Los slugs de municipio SON los códigos DIVIPOLA (contrato con la BD).
+    {"type": "select_one municipios", "name": "municipio",
+     "label": {"es": "Municipio"}, "required": "yes", "appearance": "minimal"},
     {"type": "select_one comunas", "name": "comuna",
-     "label": {"es": "Comuna"}, "required": "yes", "appearance": "minimal"},
+     "label": {"es": "Comuna"}, "required": "yes", "appearance": "minimal",
+     "choice_filter": "municipio = ${municipio}"},
     {"type": "text", "name": "barrio", "label": {"es": "Barrio"},
      "hint": {"es": "Nombre del barrio dentro de la comuna"}},
     {"type": "text", "name": "id_catastral",
@@ -236,19 +241,48 @@ motivos_no_inspeccion = [
     ("otro", {"es": "Otro"}),
 ]
 
+# Municipios afectados; el `name` ES el código DIVIPOLA (DANE). Ampliar la
+# lista según avance el operativo.
+municipios = [
+    ("66001", {"es": "Pereira"}),
+    ("66170", {"es": "Dosquebradas"}),
+    ("66682", {"es": "Santa Rosa de Cabal"}),
+    ("66400", {"es": "La Virginia"}),
+    ("76001", {"es": "Cali"}),
+    ("27001", {"es": "Quibdó"}),
+    ("otro", {"es": "Otro municipio"}),
+]
+
+# Comunas por municipio (columna `municipio` para el choice_filter).
+# Pereira: comunas con nombre; Cali: comunas numeradas 1-22; el resto usa la
+# opción "Otra / no aplica" hasta curar sus listas.
+_PEREIRA = "66001"
 comunas = [
-    ("centro", {"es": "Centro"}), ("rio_otun", {"es": "Río Otún"}),
-    ("villavicencio", {"es": "Villavicencio"}),
-    ("villa_santana", {"es": "Villa Santana"}), ("oriente", {"es": "Oriente"}),
-    ("universidad", {"es": "Universidad"}), ("boston", {"es": "Boston"}),
-    ("jardin", {"es": "Jardín"}), ("cuba", {"es": "Cuba"}),
-    ("consota", {"es": "Consotá"}), ("el_oso", {"es": "El Oso"}),
-    ("san_joaquin", {"es": "San Joaquín"}),
-    ("perla_del_otun", {"es": "Perla del Otún"}),
-    ("olimpica", {"es": "Olímpica"}), ("ferrocarril", {"es": "Ferrocarril"}),
-    ("del_cafe", {"es": "Del Café"}), ("el_poblado", {"es": "El Poblado"}),
-    ("el_rocio", {"es": "El Rocío"}), ("san_nicolas", {"es": "San Nicolás"}),
-    ("otro", {"es": "Otra / zona rural"}),
+    ("centro", {"es": "Centro"}, _PEREIRA),
+    ("rio_otun", {"es": "Río Otún"}, _PEREIRA),
+    ("villavicencio", {"es": "Villavicencio"}, _PEREIRA),
+    ("villa_santana", {"es": "Villa Santana"}, _PEREIRA),
+    ("oriente", {"es": "Oriente"}, _PEREIRA),
+    ("universidad", {"es": "Universidad"}, _PEREIRA),
+    ("boston", {"es": "Boston"}, _PEREIRA),
+    ("jardin", {"es": "Jardín"}, _PEREIRA),
+    ("cuba", {"es": "Cuba"}, _PEREIRA),
+    ("consota", {"es": "Consotá"}, _PEREIRA),
+    ("el_oso", {"es": "El Oso"}, _PEREIRA),
+    ("san_joaquin", {"es": "San Joaquín"}, _PEREIRA),
+    ("perla_del_otun", {"es": "Perla del Otún"}, _PEREIRA),
+    ("olimpica", {"es": "Olímpica"}, _PEREIRA),
+    ("ferrocarril", {"es": "Ferrocarril"}, _PEREIRA),
+    ("del_cafe", {"es": "Del Café"}, _PEREIRA),
+    ("el_poblado", {"es": "El Poblado"}, _PEREIRA),
+    ("el_rocio", {"es": "El Rocío"}, _PEREIRA),
+    ("san_nicolas", {"es": "San Nicolás"}, _PEREIRA),
+    *[(f"cali_{n}", {"es": f"Comuna {n}"}, "76001") for n in range(1, 23)],
+]
+# opción de escape por municipio (zona rural / lista sin curar)
+comunas += [
+    (f"otra_{code}" if code != "otro" else "otra", {"es": "Otra / zona rural"}, code)
+    for code, _label in municipios
 ]
 
 # Códigos oficiales AIS (sección 4) — el `name` ES el código
@@ -344,6 +378,7 @@ CHOICES = [
     ("confirmaciones", confirmaciones),
     ("tipos_inspeccion", tipos_inspeccion),
     ("motivos_no_inspeccion", motivos_no_inspeccion),
+    ("municipios", municipios),
     ("comunas", comunas),
     ("sistemas_estructurales", sistemas_estructurales),
     ("tipos_entrepiso", tipos_entrepiso),
@@ -381,14 +416,20 @@ for row in survey:
     ws.append(survey_row(row))
 
 ws = wb.create_sheet("choices")
-ws.append(["list_name", "name"] + [f"label::{lang}" for lang in LANGS.values()])
+ws.append(["list_name", "name"]
+          + [f"label::{lang}" for lang in LANGS.values()]
+          + ["municipio"])  # columna del choice_filter municipio→comuna
 for list_name, items in CHOICES:
-    for name, label in items:
-        ws.append([list_name, name] + [label.get(code, "") for code in LANGS])
+    for row in items:
+        name, label = row[0], row[1]
+        extra = row[2] if len(row) > 2 else ""
+        ws.append([list_name, name]
+                  + [label.get(code, "") for code in LANGS]
+                  + [extra])
 
 ws = wb.create_sheet("settings")
 ws.append(["form_title", "form_id", "version", "default_language"])
-ws.append(["SafeTag — Formulario Único AIS (v1)", "safetag_ais", "2026081604",
+ws.append(["SafeTag — Formulario Único AIS (v1)", "safetag_ais", "2026081605",
            DEFAULT_LANG])
 
 out = Path(__file__).parent / "ais.xlsx"

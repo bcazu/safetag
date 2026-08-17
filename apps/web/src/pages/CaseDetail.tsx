@@ -94,6 +94,40 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
       })
   }, [id])
 
+  // Realtime: si otro revisor toma/suelta/dictamina este caso mientras está
+  // abierto, el estado local se actualiza al instante (los eventos respetan RLS)
+  useEffect(() => {
+    if (!id) return
+    const channel = supabase
+      .channel(`case-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'cases',
+          filter: `id=eq.${id}`,
+        },
+        (payload) => {
+          const next = payload.new as Partial<CaseRow>
+          setCaseRow((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  status: next.status ?? prev.status,
+                  assigned_reviewer_id: next.assigned_reviewer_id ?? null,
+                  assigned_at: next.assigned_at ?? null,
+                }
+              : prev,
+          )
+        },
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [id])
+
   const derived = useMemo(() => {
     if (RISK_KEYS.some((k) => !risks[k])) return null
     return deriveHabitability(risks as Risks)

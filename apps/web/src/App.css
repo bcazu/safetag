@@ -119,10 +119,37 @@ button.linklike {
   opacity: 0.75;
 }
 
+.queue-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+}
+.queue-controls select {
+  font: inherit;
+  padding: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: inherit;
+}
+.queue-controls .check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
 .tabs {
   display: flex;
   gap: 0.4rem;
-  margin-bottom: 0.8rem;
 }
 .tab {
   background: var(--surface);
@@ -286,21 +313,25 @@ button.linklike {
   vertical-align: -1px;
 }
 
-/* Semáforo AIS: tonos bien separados entre sí; el texto del estado siempre
-   acompaña al color (el color nunca es el único canal) */
+/* Semáforo AIS (tokens --sem-* en index.css): tonos bien separados entre sí;
+   el texto del estado siempre acompaña al color (nunca es el único canal) */
 .derived-green {
-  background: #166534;
-  color: #fff;
+  background: var(--sem-green);
+  color: var(--sem-green-text);
 }
 .derived-yellow {
-  background: #fde047;
-  color: #1c1917;
+  background: var(--sem-yellow);
+  color: var(--sem-yellow-text);
 }
 .derived-orange {
-  background: #f97316;
-  color: #1c1917;
+  background: var(--sem-orange);
+  color: var(--sem-orange-text);
 }
 .derived-red {
-  background: #b91c1c;
-  color: #fff;
+  background: var(--sem-red);
+  color: var(--sem-red-text);
+}
+.derived-site_visit {
+  background: var(--sem-site-visit);
+  color: var(--sem-site-visit-text);
 }

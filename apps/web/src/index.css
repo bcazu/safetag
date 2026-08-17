@@ -4,6 +4,22 @@
   --border: #d4d4d8;
   --accent: #1d4ed8;
   color-scheme: light dark;
+
+  /* Semáforo AIS — única fuente de los colores de estado (chips, banner,
+     mapa y leyenda los consumen; MapPage los lee con getComputedStyle) */
+  --sem-green: #166534;
+  --sem-yellow: #fde047;
+  --sem-orange: #f97316;
+  --sem-red: #b91c1c;
+  --sem-site-visit: #7c3aed;
+  --sem-none: #6b7280;
+  /* texto legible sobre cada fondo */
+  --sem-green-text: #ffffff;
+  --sem-yellow-text: #1c1917;
+  --sem-orange-text: #1c1917;
+  --sem-red-text: #ffffff;
+  --sem-site-visit-text: #ffffff;
+  --sem-none-text: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
