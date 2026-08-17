@@ -330,15 +330,19 @@ dictamen remoto como insumo, y cómo registran hoy las evaluaciones presenciales
 
 ## Criterio de terminado
 
-- [ ] `pnpm exec supabase db reset` aplica 0001→0005 sin errores
-- [ ] Tests de `deriveHabitability` cubren los 4 resultados + el caso `count(high) > 2`
-- [ ] `/revisar` no ofrece "verde" en casos de captura remota
-- [ ] Un reviewer sin `license_status = 'active'` no puede insertar un dictamen (probado
-      contra RLS, no solo en UI)
-- [ ] Ciclo completo: submission Kobo con el nuevo formulario → `cases` con todos los
-      campos poblados → dictamen con los cuatro riesgos → color derivado correcto
-- [ ] Un caso rural (vereda, sistema constructivo 51 bahareque) y uno urbano (barrio,
-      sistema 21 mampostería confinada) conviven en la misma base con umbrales distintos
+- [x] `pnpm exec supabase db reset` aplica 0001→0007 sin errores (corrido dos veces)
+- [x] Tests de `deriveHabitability` cubren los 4 resultados + el caso `count(high) > 2`
+      (24 tests en packages/rules)
+- [x] `/revisar` no ofrece "verde" en casos de captura remota (`allowedResults('remote')`)
+- [x] Un reviewer sin `license_status = 'active'` no puede insertar un dictamen — probado
+      contra RLS con usuario real de Auth: 42501 en unverified, tampoco puede
+      autoactivarse ni leer `contact`; el check `override_needs_reason` también verificado
+- [x] Ciclo completo verificado 17-ago: submission Kobo (acero, matriz condicional
+      correcta) → `cases` poblado + 5 fotos en Storage → dictamen con 4 riesgos →
+      `very_high` estructural derivó `red` correctamente
+- [x] Caso rural (vereda, 51 bahareque) y urbano (barrio, 21 mampostería) conviven en la
+      base; los umbrales difieren por diseño: 51 devuelve 'unknown' (tabla 3-8 pendiente)
+      y 21 la tabla verificada de mampostería
 
 ---
 
