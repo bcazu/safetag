@@ -72,6 +72,81 @@
     "grieta": "Peor grieta",
     "columnas": "Columnas del primer piso"
   },
+  "damageLevel": {
+    "none": "Ninguno / muy leve",
+    "light": "Leve",
+    "moderate": "Moderado",
+    "heavy": "Fuerte",
+    "severe": "Severo"
+  },
+  "damageElement": {
+    "beams": "Vigas",
+    "columns": "Columnas",
+    "joints": "Nudos",
+    "connections": "Conexiones",
+    "structural_walls": "Muros estructurales",
+    "bearing_walls": "Muros portantes",
+    "confinement_columns": "Columnetas de confinamiento",
+    "confinement_beams": "Vigas de confinamiento",
+    "floor_slabs": "Entrepisos"
+  },
+  "stability": {
+    "collapse": {
+      "total": "Colapso total",
+      "partial_ge_50": "Colapso parcial (≥50%)",
+      "partial_lt_50": "Colapso parcial (<50%)",
+      "none": "Sin colapso"
+    },
+    "tilt": {
+      "evident": "Inclinación evidente",
+      "suspected": "Inclinación dudosa",
+      "none": "Sin inclinación"
+    }
+  },
+  "inspectionType": {
+    "exterior": "Solo exterior",
+    "partial": "Parcial",
+    "complete": "Completa",
+    "not_inspected": "No inspeccionada"
+  },
+  "globalDamage": {
+    "none": "Sin daño",
+    "0_10": "0–10 %",
+    "10_30": "10–30 %",
+    "30_60": "30–60 %",
+    "60_100": "60–100 %",
+    "100": "100 % (colapso)"
+  },
+  "buildingUse": {
+    "1": "Residencial",
+    "2": "Comercial",
+    "3": "Educacional",
+    "4": "Salud",
+    "5": "Hotelero",
+    "6": "Oficinas",
+    "7": "Industrial",
+    "8": "Institucional",
+    "9": "Bodegas",
+    "10": "Estacionamientos",
+    "11": "Otros"
+  },
+  "safetyMeasure": {
+    "shoring": "Apuntalamiento",
+    "cordon_off": "Acordonar / restringir acceso",
+    "partial_evacuation": "Evacuación parcial",
+    "utility_shutoff": "Suspender servicios públicos",
+    "possible_demolition": "Posible demolición"
+  },
+  "specialistVisit": {
+    "structural": "Visita de ingeniero estructural",
+    "geotechnical": "Visita de geotecnista",
+    "utilities": "Visita de servicios públicos"
+  },
+  "reviewerSpecialty": {
+    "structural": "Estructural",
+    "geotechnical": "Geotécnica",
+    "general": "General"
+  },
   "brigade": {
     "member": "Brigadista",
     "members": "Brigadistas",
