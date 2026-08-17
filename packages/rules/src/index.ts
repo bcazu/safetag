@@ -3,5 +3,6 @@
 // servicio de IA. No duplicar estos criterios en UI ni en SQL.
 export * from "./habitability";
 export * from "./crack-thresholds";
+export * from "./risk-criteria";
 export * from "./structural-systems";
 export * from "./routing";

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "updated": "2026-08-16",
+  "source": "Manual de Campo AIS (Comité AIS-400), ed. Manizales 2003; transcripción verificada en docs/marco-normativo-y-negocio.md, sección 'Umbrales de grieta'. El PDF público se trunca hacia la p. 40/71: las tablas marcadas con 'todo' NO están verificadas y sus valores no deben estimarse ni generarse.",
+  "systems": {
+    "11": { "table": "concrete" },
+    "12": { "table": "concrete" },
+    "13": { "table": "concrete" },
+    "14": { "table": "concrete" },
+    "21": { "table": "masonry" },
+    "22": { "table": "masonry" },
+    "23": { "table": "masonry" },
+    "31": { "table": null, "todo": "TODO(tabla 3-9): niveles de daño en acero sin verificar" },
+    "32": { "table": null, "todo": "TODO(tabla 3-9): niveles de daño en acero sin verificar" },
+    "33": { "table": null, "todo": "TODO(tabla 3-9): niveles de daño en acero sin verificar" },
+    "41": { "table": null, "todo": "TODO(tabla 3-10): niveles de daño en madera sin verificar" },
+    "42": { "table": null, "todo": "TODO(tabla 3-10): niveles de daño en madera sin verificar" },
+    "51": { "table": null, "todo": "TODO(tabla 3-8): bahareque tiene tabla propia, distinta de tapia; sin verificar" },
+    "52": { "table": "earthen" },
+    "50": { "table": null, "todo": "sistema mixto: el manual no define una tabla propia" },
+    "60": { "table": null, "todo": "otros sistemas: el manual no define una tabla propia" }
+  },
+  "floorSlabs": {
+    "todo": "TODO(tabla 3-11): niveles de daño en entrepisos sin verificar; la UI no debe sugerir nivel para el elemento entrepisos"
+  },
+  "tables": {
+    "concrete": {
+      "status": "verified",
+      "appliesTo": "concreto reforzado (sistemas 11-14)",
+      "levels": [
+        { "level": "none", "minWidthMm": null, "maxWidthMm": 0.2,
+          "qualitative": "fisuras casi imperceptibles" },
+        { "level": "light", "minWidthMm": 0.2, "maxWidthMm": 1.0,
+          "qualitative": "perceptible a simple vista" },
+        { "level": "moderate", "minWidthMm": 1.0, "maxWidthMm": 2.0,
+          "qualitative": "pérdida incipiente del recubrimiento" },
+        { "level": "heavy", "minWidthMm": 2.0, "maxWidthMm": null,
+          "qualitative": "agrietamiento notable, pérdida de recubrimiento, refuerzo longitudinal expuesto" },
+        { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "aplastamiento del concreto, agrietamiento del núcleo, pandeo de barras, deformaciones excesivas" }
+      ]
+    },
+    "masonry": {
+      "status": "verified",
+      "appliesTo": "mampostería (sistemas 21-23)",
+      "levels": [
+        { "level": "none", "minWidthMm": null, "maxWidthMm": 0.2, "qualitative": null },
+        { "level": "light", "minWidthMm": 0.2, "maxWidthMm": 1.0, "qualitative": null },
+        { "level": "moderate", "minWidthMm": 1.0, "maxWidthMm": 3.0,
+          "qualitative": "inicio de agrietamiento diagonal en muros confinados" },
+        { "level": "heavy", "minWidthMm": 3.0, "maxWidthMm": null,
+          "qualitative": "agrietamiento diagonal severo, dislocación de piezas" },
+        { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "desprendimiento de piezas, aplastamiento local, desplome del muro; agrietamiento diagonal prolongado a columnetas y vigas de confinamiento con anchos > 1,0 mm" }
+      ]
+    },
+    "earthen": {
+      "status": "verified",
+      "appliesTo": "tapia pisada / adobe (sistema 52). NO cubre bahareque (51): ver TODO(tabla 3-8)",
+      "levels": [
+        { "level": "none", "minWidthMm": null, "maxWidthMm": 0.4, "qualitative": null },
+        { "level": "light", "minWidthMm": 0.4, "maxWidthMm": 2.0, "qualitative": null },
+        { "level": "moderate", "minWidthMm": 2.0, "maxWidthMm": 4.0, "qualitative": null },
+        { "level": "heavy", "minWidthMm": 4.0, "maxWidthMm": null,
+          "qualitative": "desplazamiento fuera del plano de pocos milímetros" },
+        { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "aplastamiento local, deformación, desplome apreciable" }
+      ]
+    }
+  }
+}

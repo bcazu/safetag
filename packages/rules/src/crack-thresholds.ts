@@ -1,13 +1,23 @@
 // Umbrales de ancho de grieta por sistema estructural — manual AIS, sección 5.3.
-// Ver docs/marco-normativo-y-negocio.md §2 ("Umbrales de grieta").
+// Ver docs/marco-normativo-y-negocio.md ("Umbrales de grieta" y "Vacíos
+// conocidos") y docs/HANDOFF.md ("Vacíos conocidos — PROHIBIDO inventar").
 //
 // NO existe un umbral global: "grietas > 3 mm → evacuar" es falso como regla
 // general. El umbral depende del material, y los niveles altos incluyen
 // criterios cualitativos (refuerzo expuesto, desprendimiento) además del ancho.
+//
+// Los umbrales son DATOS versionados (data/crack-thresholds.json), no
+// constantes: las tablas del manual que faltan por verificar (bahareque 3-8,
+// acero 3-9, madera 3-10, entrepisos 3-11) están marcadas con TODO(tabla 3-X)
+// en el JSON y este módulo devuelve 'unknown' para ellas — la UI debe pedir
+// clasificación manual del nivel, sin sugerencia automática. PROHIBIDO
+// rellenar esos huecos con valores plausibles.
+//
 // Este módulo es también el ground truth del modelo de visión de fase 2, que
 // debe recibir el sistema estructural como input.
 
-import { materialFamily, type AisStructuralSystem } from "./structural-systems";
+import data from "./data/crack-thresholds.json";
+import type { AisStructuralSystem } from "./structural-systems";
 
 export const DAMAGE_LEVELS = [
   "none",
@@ -25,61 +35,56 @@ export interface CrackThreshold {
   /** Ancho máximo en mm (exclusivo); null = sin tope o no aplica */
   maxWidthMm: number | null;
   /** Criterio cualitativo adicional o sustituto del ancho */
-  qualitative?: string;
+  qualitative: string | null;
 }
 
-const CONCRETE: CrackThreshold[] = [
-  { level: "none", minWidthMm: null, maxWidthMm: 0.2 },
-  { level: "light", minWidthMm: 0.2, maxWidthMm: 1.0 },
-  { level: "moderate", minWidthMm: 1.0, maxWidthMm: 2.0,
-    qualitative: "pérdida incipiente del recubrimiento" },
-  { level: "heavy", minWidthMm: 2.0, maxWidthMm: null,
-    qualitative: "pérdida de recubrimiento, refuerzo longitudinal expuesto" },
-  { level: "severe", minWidthMm: null, maxWidthMm: null,
-    qualitative:
-      "aplastamiento del concreto, agrietamiento del núcleo, pandeo de barras" },
-];
+export type ThresholdLookup =
+  | {
+      status: "verified";
+      levels: CrackThreshold[];
+      /** A qué material corresponde la tabla verificada */
+      appliesTo: string;
+    }
+  | {
+      status: "unknown";
+      /** Por qué no hay umbrales (incluye el TODO(tabla 3-X) rastreable) */
+      reason: string;
+    };
 
-const MASONRY: CrackThreshold[] = [
-  { level: "none", minWidthMm: null, maxWidthMm: 0.2 },
-  { level: "light", minWidthMm: 0.2, maxWidthMm: 1.0 },
-  { level: "moderate", minWidthMm: 1.0, maxWidthMm: 3.0,
-    qualitative: "inicio de agrietamiento diagonal en muros confinados" },
-  { level: "heavy", minWidthMm: 3.0, maxWidthMm: null,
-    qualitative: "agrietamiento diagonal severo, dislocación de piezas" },
-  { level: "severe", minWidthMm: null, maxWidthMm: null,
-    qualitative:
-      "desprendimiento de piezas, aplastamiento local, desplome del muro" },
-];
+type TableKey = keyof typeof data.tables;
 
-// Tapia pisada / adobe / bahareque: el material tolera más fisura
-const EARTHEN: CrackThreshold[] = [
-  { level: "none", minWidthMm: null, maxWidthMm: 0.4 },
-  { level: "light", minWidthMm: 0.4, maxWidthMm: 2.0 },
-  { level: "moderate", minWidthMm: 2.0, maxWidthMm: 4.0 },
-  { level: "heavy", minWidthMm: 4.0, maxWidthMm: null,
-    qualitative: "desplazamiento fuera del plano de pocos milímetros" },
-  { level: "severe", minWidthMm: null, maxWidthMm: null,
-    qualitative: "aplastamiento local, deformación, desplome apreciable" },
-];
+const systems = data.systems as Record<
+  AisStructuralSystem,
+  { table: TableKey | null; todo?: string }
+>;
 
 /**
  * Rangos de ancho de grieta para el sistema estructural dado (código AIS).
- * Devuelve null para acero, madera, mixta y otros: el manual no define
- * criterios de ancho de grieta para esos sistemas (se evalúan por conexiones,
- * pandeo, etc.), y ese caso debe manejarse explícitamente, no con un default.
+ *
+ * 'unknown' ⇒ el manual define la tabla pero no está verificada (bahareque,
+ * acero, madera) o el sistema no tiene tabla propia (mixta, otros): la UI
+ * pide al revisor clasificar el nivel manualmente.
  */
 export function damageLevelThresholds(
   structuralSystem: AisStructuralSystem,
-): CrackThreshold[] | null {
-  switch (materialFamily(structuralSystem)) {
-    case "concrete":
-      return CONCRETE;
-    case "masonry":
-      return MASONRY;
-    case "earthen":
-      return EARTHEN;
-    default:
-      return null;
+): ThresholdLookup {
+  const entry = systems[structuralSystem];
+  if (!entry.table) {
+    return { status: "unknown", reason: entry.todo ?? "sin tabla verificada" };
   }
+  const table = data.tables[entry.table];
+  return {
+    status: "verified",
+    levels: table.levels as CrackThreshold[],
+    appliesTo: table.appliesTo,
+  };
 }
+
+/** Versión y fuente de los datos de umbrales (para auditoría/UI) */
+export const CRACK_THRESHOLDS_META = {
+  version: data.version,
+  updated: data.updated,
+  source: data.source,
+  /** TODO(tabla 3-11): entrepisos sin umbral verificado */
+  floorSlabs: data.floorSlabs,
+} as const;

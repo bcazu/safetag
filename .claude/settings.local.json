@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit --quiet -m 'Corregir motor de reglas contra los '\\\\''Vacíos conocidos'\\\\'' del handoff *)"
+    ]
+  }
+}

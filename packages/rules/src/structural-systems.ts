@@ -22,28 +22,7 @@ export const AIS_STRUCTURAL_SYSTEMS = {
 
 export type AisStructuralSystem = keyof typeof AIS_STRUCTURAL_SYSTEMS;
 
-export type MaterialFamily =
-  | "concrete"
-  | "masonry"
-  | "steel"
-  | "wood"
-  | "earthen"
-  | "other";
-
-export function materialFamily(system: AisStructuralSystem): MaterialFamily {
-  switch (system[0]) {
-    case "1":
-      return "concrete";
-    case "2":
-      return "masonry";
-    case "3":
-      return "steel";
-    case "4":
-      return "wood";
-    case "5":
-      // 51 bahareque y 52 tapia son tierra; 50 es "mixta"
-      return system === "50" ? "other" : "earthen";
-    default:
-      return "other";
-  }
-}
+// Nota: aquí NO hay clasificador por "familia de material" a propósito.
+// Agrupar 51 (bahareque) con 52 (tapia) llevó a aplicarle a bahareque los
+// umbrales de tapia, y la tabla 3-8 (bahareque) no está verificada. Los
+// umbrales se resuelven por código exacto en data/crack-thresholds.json.

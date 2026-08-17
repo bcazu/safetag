@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "updated": "2026-08-16",
+  "source": "Manual de Campo AIS (Comité AIS-400), ed. Manizales 2003; tablas verificadas en la segunda lectura, ver docs/HANDOFF.md 'Vacíos conocidos' y docs/marco-normativo-y-negocio.md. Los riesgos sin tabla verificada NO llevan sugerencia automática: el revisor los asigna manualmente.",
+  "globalStability": {
+    "status": "verified",
+    "table": "3-2",
+    "criteria": {
+      "very_high": "Colapso de más del 50%, o edificación notablemente inclinada",
+      "high": "Colapso parcial del 5–50% sin riesgo de colapso progresivo",
+      "low_after_measures": "Colapso o inclinación puntual (<5%) que puede apuntalarse",
+      "low": "Nada de lo anterior"
+    },
+    "tiltRule": "Inclinación >2° (desplome > 1/30 de la altura; >8 cm por piso de 2,5 m) = riesgo alto en pórticos de varios pisos. Deriva residual en cualquier piso de un edificio alto de pórticos = riesgo muy alto."
+  },
+  "geotechnical": {
+    "status": "verified",
+    "table": "3-3",
+    "criteria": {
+      "very_high": "El fenómeno produjo fallas severas en la cimentación, o hay hundimiento/inclinación/asentamiento; o la edificación está sobre o muy cerca del área de influencia con potencial de reactivación inminente o muy probable",
+      "high": "Fenómeno puntual que sugiere disminución significativa de la capacidad del suelo; o edificación a distancia insuficiente para excluirla del área de influencia con reactivación inminente a muy probable",
+      "low_after_measures": "No está en el área de influencia pero sí en sus proximidades; se recomiendan medidas preventivas porque la reactivación es probable",
+      "low": "El fenómeno no produjo daños y tiene probabilidad menor de reactivación"
+    }
+  },
+  "structural": {
+    "status": "unknown",
+    "todo": "TODO(tabla 3-13): severidad+extensión → riesgo estructural sin verificar. El helper de sugerencia NO se construye en v1: el revisor asigna el riesgo manualmente."
+  },
+  "nonstructural": {
+    "status": "unknown",
+    "todo": "TODO(tabla 3-21): definición del riesgo no estructural sin verificar. En el formulario impreso parece tener solo 3 niveles (sin 'muy alto'): confirmar antes de restringir el enum."
+  }
+}
