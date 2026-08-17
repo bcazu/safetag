@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { useTranslation } from 'react-i18next'
 import { supabase } from './lib/supabase'
@@ -8,6 +8,7 @@ import Login from './pages/Login'
 import RegisterReviewer from './pages/RegisterReviewer'
 import Queue from './pages/Queue'
 import CaseDetail from './pages/CaseDetail'
+import MapPage from './pages/MapPage'
 import './App.css'
 
 function App() {
@@ -58,6 +59,10 @@ function App() {
         <h1>
           {t('app.name')} — {t('app:title')}
         </h1>
+        <nav className="topbar-nav">
+          <NavLink to="/">{t('app:queue.title')}</NavLink>
+          <NavLink to="/mapa">{t('app:map.title')}</NavLink>
+        </nav>
         <div className="topbar-user">
           <span>
             {reviewer.name} ·{' '}
@@ -73,6 +78,7 @@ function App() {
       </header>
       <Routes>
         <Route path="/" element={<Queue />} />
+        <Route path="/mapa" element={<MapPage />} />
         <Route path="/caso/:id" element={<CaseDetail reviewer={reviewer} />} />
       </Routes>
     </BrowserRouter>

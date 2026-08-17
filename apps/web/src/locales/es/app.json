@@ -23,6 +23,10 @@
     "pendingTitle": "Verificación pendiente",
     "pendingBody": "Tu matrícula ({{license}}) está en verificación. Podrás ver la cola de casos, pero no emitir dictámenes hasta que quede activa."
   },
+  "map": {
+    "title": "Mapa",
+    "unassessed": "Sin dictamen"
+  },
   "queue": {
     "title": "Cola de revisión",
     "empty": "No hay casos pendientes.",

@@ -10,7 +10,9 @@
       "Bash(python3 -c \"import json; d=json.load\\(open\\('packages/i18n/src/locales/es/common.json'\\)\\); print\\('riskLevel raíz:', 'riskLevel' in d, '| en assessment:', 'riskLevel' in d['assessment']\\)\")",
       "Bash(pnpm --filter web build)",
       "Bash(git commit --quiet -m 'Mover risk/riskLevel a la raíz de common.json *)",
-      "Bash(git commit --quiet -m 'Mejorar contraste entre los colores del semáforo derivado *)"
+      "Bash(git commit --quiet -m 'Mejorar contraste entre los colores del semáforo derivado *)",
+      "Bash(git commit --quiet -m 'Marcar el criterio de terminado del handoff como verificado *)",
+      "Bash(git commit --quiet -m 'Agregar /mapa: dashboard geográfico con semáforo de casos *)"
     ]
   }
 }

@@ -11,6 +11,19 @@
   font-size: 1.05rem;
   margin: 0;
 }
+.topbar-nav {
+  display: flex;
+  gap: 0.9rem;
+}
+.topbar-nav a {
+  text-decoration: none;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.topbar-nav a.active {
+  opacity: 1;
+  border-bottom: 2px solid var(--accent);
+}
 .topbar-user {
   display: flex;
   align-items: center;
@@ -190,6 +203,38 @@ button.linklike {
   font-weight: 400;
   opacity: 0.8;
 }
+.map-main {
+  position: relative;
+  height: calc(100vh - 3.2rem);
+}
+.map {
+  height: 100%;
+  width: 100%;
+}
+.map-legend {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 0.8rem;
+  z-index: 1000;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+}
+.map-legend i {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  border: 1px solid #1f2937;
+  margin-right: 0.35rem;
+  vertical-align: -1px;
+}
+
 /* Semáforo AIS: tonos bien separados entre sí; el texto del estado siempre
    acompaña al color (el color nunca es el único canal) */
 .derived-green {
