@@ -56,9 +56,13 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
 
   useEffect(() => {
     if (!id) return
+    // cases tiene grants por columna (0006 excluye la PII contact/occupancy):
+    // select('*') falla con 42501 — siempre lista explícita
     supabase
       .from('cases')
-      .select('*')
+      .select(
+        'id, address, neighborhood, commune, building_name, status, priority, created_at, inspection_type, not_inspected_reason, structural_system, floor_system, year_range, building_use, ground_floor_use, floors_above, basements, worst_damaged_floor, global_damage_pct, warning_signs, structural_damage, geotechnical',
+      )
       .eq('id', id)
       .single()
       .then(({ data, error }) => {

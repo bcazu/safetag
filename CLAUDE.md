@@ -118,6 +118,9 @@ python kobo/gen_xlsform.py && xls2xform kobo/ais.xlsx /tmp/ais.xml
   submission llega con espacios convertidos a `_`.
 - El webhook responde 200 en duplicados (23505) para cortar reintentos de
   Kobo; las fotos son best-effort para no duplicar casos por reintento.
+- `cases` tiene grants de SELECT **por columna** (0006 excluye la PII):
+  `select('*')` desde el cliente falla con 42501 — usar siempre lista
+  explícita de columnas.
 
 ## Datos personales (Ley 1581)
 
