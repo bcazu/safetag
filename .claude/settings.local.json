@@ -13,7 +13,9 @@
       "Bash(git commit --quiet -m 'Mejorar contraste entre los colores del semáforo derivado *)",
       "Bash(git commit --quiet -m 'Marcar el criterio de terminado del handoff como verificado *)",
       "Bash(git commit --quiet -m 'Agregar /mapa: dashboard geográfico con semáforo de casos *)",
-      "Bash(git commit --quiet -m 'Otorgar SELECT de las columnas de asignación \\(fix del 403 en la cola\\) *)"
+      "Bash(git commit --quiet -m 'Otorgar SELECT de las columnas de asignación \\(fix del 403 en la cola\\) *)",
+      "Bash(git commit --quiet -m 'Reforzar el gotcha de grants por columna en CLAUDE.md *)",
+      "Bash(git commit --quiet -m 'Pestañas de estado en la cola: Pendientes / Dictaminados / Todos *)"
     ]
   }
 }

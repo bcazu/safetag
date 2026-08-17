@@ -119,6 +119,26 @@ button.linklike {
   opacity: 0.75;
 }
 
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+.tab {
+  background: var(--surface);
+  color: inherit;
+  border: 1px solid var(--border);
+}
+.tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+.chip {
+  border-radius: 999px;
+  padding: 0 0.6rem;
+  font-weight: 600;
+}
+
 .case-list {
   list-style: none;
   padding: 0;

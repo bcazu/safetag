@@ -5,39 +5,68 @@ import { routeCase, AIS_STRUCTURAL_SYSTEMS } from '@safetag/rules'
 import { supabase } from '../lib/supabase'
 import type { CaseRow, ReviewerRow } from '../lib/types'
 
+type Tab = 'open' | 'assessed' | 'all'
+
+type QueueRow = CaseRow & {
+  assessments: { result: string; signed_at: string }[]
+}
+
 export default function Queue({ reviewer }: { reviewer: ReviewerRow }) {
   const { t } = useTranslation()
-  const [cases, setCases] = useState<CaseRow[] | null>(null)
+  const [tab, setTab] = useState<Tab>('open')
+  const [cases, setCases] = useState<QueueRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    supabase
+    setCases(null)
+    let query = supabase
       .from('cases')
       .select(
-        'id, address, neighborhood, commune, building_name, status, priority, created_at, structural_system, building_use, floors_above, global_damage_pct, geotechnical, assigned_reviewer_id',
+        'id, address, neighborhood, commune, building_name, status, priority, created_at, structural_system, building_use, floors_above, global_damage_pct, geotechnical, assigned_reviewer_id, assessments(result, signed_at)',
       )
-      .in('status', ['pending', 'in_review'])
       .order('priority', { ascending: false })
       .order('created_at', { ascending: true })
-      .then(({ data, error: err }) => {
-        if (err) setError(err.message)
-        else setCases(data as CaseRow[])
-      })
-  }, [])
+    if (tab === 'open') query = query.in('status', ['pending', 'in_review'])
+    if (tab === 'assessed') query = query.eq('status', 'assessed')
+    query.then(({ data, error: err }) => {
+      if (err) setError(err.message)
+      else setCases(data as QueueRow[])
+    })
+  }, [tab])
+
+  function lastResult(c: QueueRow): string | null {
+    const sorted = [...(c.assessments ?? [])].sort((a, b) =>
+      b.signed_at.localeCompare(a.signed_at),
+    )
+    return sorted[0]?.result ?? null
+  }
 
   if (error) return <main className="page error">{error}</main>
-  if (!cases) return <main className="page">{t('app:queue.loading')}</main>
 
   return (
     <main className="page">
       <h2>{t('app:queue.title')}</h2>
-      {cases.length === 0 && <p>{t('app:queue.empty')}</p>}
+      <div className="tabs">
+        {(['open', 'assessed', 'all'] as Tab[]).map((k) => (
+          <button
+            key={k}
+            type="button"
+            className={tab === k ? 'tab active' : 'tab'}
+            onClick={() => setTab(k)}
+          >
+            {t(`app:queue.tab_${k}`)}
+          </button>
+        ))}
+      </div>
+      {!cases && <p>{t('app:queue.loading')}</p>}
+      {cases && cases.length === 0 && <p>{t('app:queue.empty')}</p>}
       <ul className="case-list">
-        {cases.map((c) => {
+        {(cases ?? []).map((c) => {
           const required = routeCase({
             buildingUse: c.building_use,
             geotechnical: c.geotechnical,
           })
+          const result = lastResult(c)
           return (
             <li key={c.id} className="case-card">
               <div>
@@ -46,13 +75,19 @@ export default function Queue({ reviewer }: { reviewer: ReviewerRow }) {
                 {c.commune && <span> · {c.commune}</span>}
               </div>
               <div className="case-meta">
-                <span>
-                  {c.status === 'in_review'
-                    ? c.assigned_reviewer_id === reviewer.id
-                      ? t('app:queue.assignedToMe')
-                      : t('app:queue.assignedToOther')
-                    : t(`case.status.${c.status}`)}
-                </span>
+                {c.status === 'assessed' && result ? (
+                  <span className={`chip derived-${result}`}>
+                    {t(`assessment.result.${result}`)}
+                  </span>
+                ) : (
+                  <span>
+                    {c.status === 'in_review'
+                      ? c.assigned_reviewer_id === reviewer.id
+                        ? t('app:queue.assignedToMe')
+                        : t('app:queue.assignedToOther')
+                      : t(`case.status.${c.status}`)}
+                  </span>
+                )}
                 <span>
                   {c.priority} {t('app:queue.priorityShort')}
                 </span>

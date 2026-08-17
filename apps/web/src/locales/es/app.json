@@ -33,6 +33,9 @@
   },
   "queue": {
     "title": "Cola de revisión",
+    "tab_open": "Pendientes",
+    "tab_assessed": "Dictaminados",
+    "tab_all": "Todos",
     "empty": "No hay casos pendientes.",
     "loading": "Cargando casos…",
     "priorityShort": "prioridad",
