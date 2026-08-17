@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { routeCase } from '@safetag/rules'
 import { supabase } from '../lib/supabase'
+import { communeLabel, divisionNames } from '../lib/territory'
 import type { CaseRow } from '../lib/types'
 
 // Filas de las vistas agregadas de 0015 (sin PII; conteos bajo RLS)
@@ -53,6 +54,11 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null)
   const [mun, setMun] = useState<string>('all')
   const [tip, setTip] = useState<Tip | null>(null)
+  const [divNames, setDivNames] = useState<Map<string, string>>()
+
+  useEffect(() => {
+    divisionNames().then(setDivNames)
+  }, [])
 
   useEffect(() => {
     Promise.all([
@@ -153,7 +159,7 @@ export default function Dashboard() {
   const progressLabel = (key: string) => {
     if (key === '—') return t('app:dash.noTerritory')
     if (mun === 'all') return munLabel(key)
-    return key.startsWith(`${mun}-`) ? key.slice(mun.length + 1) : key
+    return communeLabel(key, divNames)
   }
 
   // Ritmo: últimos 14 días, huecos en 0

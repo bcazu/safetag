@@ -3,6 +3,11 @@
 > Registrado 16-ago-2026 a partir de la primera sesión de uso real de /revisar
 > y /mapa. Complementa los pendientes normativos de `docs/HANDOFF.md` (T6
 > parcial, revisión presencial, tablas AIS sin verificar).
+>
+> **Estado (17-ago-2026):** #1–#6 hechos en `911f227`; #2 profundizado por
+> HANDOFF-T5b (cascadas por CSV, tipo de zona, gabinete territorial) en
+> `d947e4b`; #7 hecho en `daf6059` (página /tablero + vistas 0015).
+> Quedan abiertos #8, #9 y #10 (requieren decisiones o prueba en dispositivo).
 
 ## 1. Unificar los colores de estado
 

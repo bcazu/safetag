@@ -13,6 +13,7 @@ import {
   type Risks,
 } from '@safetag/rules'
 import { supabase } from '../lib/supabase'
+import { communeLabel, divisionNames } from '../lib/territory'
 import type { AssessmentRow, CaseRow, PhotoRow, ReviewerRow } from '../lib/types'
 
 const RISK_KEYS = [
@@ -54,6 +55,11 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
   const [visits, setVisits] = useState<Set<string>>(new Set())
   const [formError, setFormError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [divNames, setDivNames] = useState<Map<string, string>>()
+
+  useEffect(() => {
+    divisionNames().then(setDivNames)
+  }, [])
 
   useEffect(() => {
     if (!id) return
@@ -269,7 +275,7 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
       <Link to="/">← {t('app:case.back')}</Link>
       <h2>
         {caseRow.address ?? caseRow.building_name ?? caseRow.id}
-        {caseRow.commune && ` · ${caseRow.commune}`}
+        {caseRow.commune && ` · ${communeLabel(caseRow.commune, divNames)}`}
       </h2>
 
       <section>

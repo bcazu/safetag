@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { routeCase, AIS_STRUCTURAL_SYSTEMS } from '@safetag/rules'
 import { supabase } from '../lib/supabase'
+import { communeLabel, divisionNames } from '../lib/territory'
 import type { CaseRow, ReviewerRow } from '../lib/types'
 
 type Tab = 'open' | 'assessed' | 'all'
@@ -24,6 +25,11 @@ export default function Queue({ reviewer }: { reviewer: ReviewerRow }) {
   const [cases, setCases] = useState<QueueRow[] | null>(null)
   const [total, setTotal] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [divNames, setDivNames] = useState<Map<string, string>>()
+
+  useEffect(() => {
+    divisionNames().then(setDivNames)
+  }, [])
 
   useEffect(() => setPage(0), [tab, sort, onlyAvailable])
 
@@ -128,7 +134,7 @@ export default function Queue({ reviewer }: { reviewer: ReviewerRow }) {
               <div>
                 <strong>{c.address ?? c.building_name ?? c.id}</strong>
                 {c.neighborhood && <span> · {c.neighborhood}</span>}
-                {c.commune && <span> · {c.commune}</span>}
+                {c.commune && <span> · {communeLabel(c.commune, divNames)}</span>}
                 {c.municipality && (
                   <span> · {t(`municipality.${c.municipality}`)}</span>
                 )}

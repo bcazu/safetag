@@ -8,6 +8,7 @@ import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import { supabase } from '../lib/supabase'
+import { communeLabel, divisionNames } from '../lib/territory'
 
 // Centro por defecto: Pereira
 const DEFAULT_CENTER: [number, number] = [4.8133, -75.6961]
@@ -42,12 +43,6 @@ const PENDING_COLOR = semColor('none')
 
 function markerColor(c: MapCase): string {
   return (c.result && RESULT_COLORS[c.result]) || PENDING_COLOR
-}
-
-// los slugs de comuna vienen del formulario Kobo ('villa_santana', 'cali_3')
-function communeLabel(slug: string): string {
-  const s = slug.replace(/^cali_/, 'comuna ').replaceAll('_', ' ')
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 // MapContainer solo aplica bounds al montar; esto re-encuadra al filtrar
@@ -118,6 +113,7 @@ export default function MapPage() {
   const [municipalityFilter, setMunicipalityFilter] = useState('')
   const [communeFilter, setCommuneFilter] = useState('')
   const [resultFilter, setResultFilter] = useState('')
+  const [divNames, setDivNames] = useState<Map<string, string>>()
 
   useEffect(() => {
     supabase
@@ -127,6 +123,7 @@ export default function MapPage() {
         if (err) setError(err.message)
         else setCases((data as MapCase[]) ?? [])
       })
+    divisionNames().then(setDivNames)
   }, [])
 
   // territorios presentes en los datos = donde hay revisiones
@@ -179,7 +176,7 @@ export default function MapPage() {
   const popupHtml = useMemo(
     () => (c: MapCase) => {
       const title = escapeHtml(c.address ?? c.id)
-      const place = [c.neighborhood, c.commune && communeLabel(c.commune)]
+      const place = [c.neighborhood, c.commune && communeLabel(c.commune, divNames)]
         .filter(Boolean)
         .map((s) => escapeHtml(s as string))
         .join(' · ')
@@ -188,7 +185,7 @@ export default function MapPage() {
         : `${escapeHtml(t(`case.status.${c.status}`))} · ${c.priority} ${escapeHtml(t('app:queue.priorityShort'))}`
       return `<strong>${title}</strong>${place ? `<div>${place}</div>` : ''}<div>${state}</div><a data-case href="/caso/${c.id}">${escapeHtml(t('app:queue.open'))}</a>`
     },
-    [t],
+    [t, divNames],
   )
 
   if (error) return <main className="page error">{error}</main>
@@ -225,7 +222,7 @@ export default function MapPage() {
           <option value="">{t('app:map.allCommunes')}</option>
           {communes.map((c) => (
             <option key={c} value={c}>
-              {communeLabel(c)}
+              {communeLabel(c, divNames)}
             </option>
           ))}
         </select>
