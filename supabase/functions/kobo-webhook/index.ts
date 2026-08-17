@@ -56,7 +56,8 @@ Deno.serve(async (req) => {
           ? submission.barrio_otro ?? "otro"
           : submission.barrio ?? null,
       construction_system: submission.sistema_constructivo ?? null,
-      num_floors: submission.num_pisos ?? null,
+      // TODO(T7): remapear al formulario AIS completo (kobo/ais.xlsx)
+      floors_above: submission.num_pisos ?? null,
       // select_multiple llega como string separado por espacios
       warning_signs: submission.senales_alarma?.split(" ") ?? null,
     })

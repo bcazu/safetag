@@ -25,8 +25,25 @@
     "result": {
       "green": "Verde — habitable",
       "yellow": "Amarillo — uso restringido",
-      "red": "Rojo — inseguro",
+      "orange": "Naranja — no habitable",
+      "red": "Rojo — peligro de colapso",
       "site_visit": "Requiere visita presencial"
+    },
+    "resultDetail": {
+      "orange": "Daño estructural con capacidad de carga reducida. No ocupar hasta evaluación detallada.",
+      "red": "Riesgo inminente de colapso: evacuar el edificio y su entorno. Rojo no significa demolición."
+    },
+    "risk": {
+      "globalStability": "Estabilidad global",
+      "geotechnical": "Geotécnico",
+      "structural": "Estructural",
+      "nonstructural": "No estructural"
+    },
+    "riskLevel": {
+      "low": "Bajo",
+      "low_after_measures": "Bajo después de medidas",
+      "high": "Alto",
+      "very_high": "Muy alto"
     },
     "notes": "Observaciones",
     "signedAt": "Firmado el"

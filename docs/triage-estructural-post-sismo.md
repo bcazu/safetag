@@ -47,7 +47,10 @@
 - **Refuerzo expuesto** por desprendimiento de concreto → daño severo
 - Pisos desnivelados, puertas/ventanas que no cierran → deformación permanente
 - Separación entre muros y columnas/vigas → pérdida de conexión estructural
-- Grietas > 3 mm, diagonales o que atraviesan muros de carga → evacuar
+- ~~Grietas > 3 mm → evacuar~~ **Corregido** (ver `docs/marco-normativo-y-negocio.md`,
+  "Umbrales de grieta"): no hay umbral universal — depende del sistema
+  constructivo (concreto 2,0 mm ya es "fuerte"; tapia tolera hasta 4,0 mm) y
+  de la extensión. Umbrales codificados en `packages/rules` (`damageLevelThresholds`).
 
 > ⚠️ **Principio rector:** el software hace *triage y priorización*. El dictamen de habitabilidad lo firma un ingeniero civil/estructural matriculado. Una fisura en acabados no implica daño estructural, y hay daños ocultos que una foto no revela.
 
