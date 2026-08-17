@@ -1,0 +1,56 @@
+name,label,municipio_code,tipo
+66001-C-CENTRO,Comuna Centro,66001,urbano
+66001-C-RIOOTUN,Comuna Río Otún,66001,urbano
+66001-C-VILLAVICENCIO,Comuna Villavicencio,66001,urbano
+66001-C-VILLASANTANA,Comuna Villa Santana,66001,urbano
+66001-C-ORIENTE,Comuna Oriente,66001,urbano
+66001-C-UNIVERSIDAD,Comuna Universidad,66001,urbano
+66001-C-BOSTON,Comuna Boston,66001,urbano
+66001-C-JARDIN,Comuna Jardín,66001,urbano
+66001-C-CUBA,Comuna Cuba,66001,urbano
+66001-C-CONSOTA,Comuna Consotá,66001,urbano
+66001-C-ELOSO,Comuna El Oso,66001,urbano
+66001-C-SANJOAQUIN,Comuna San Joaquín,66001,urbano
+66001-C-PERLADELOTUN,Comuna Perla del Otún,66001,urbano
+66001-C-OLIMPICA,Comuna Olímpica,66001,urbano
+66001-C-FERROCARRIL,Comuna Ferrocarril,66001,urbano
+66001-C-DELCAFE,Comuna Del Café,66001,urbano
+66001-C-ELPOBLADO,Comuna El Poblado,66001,urbano
+66001-C-ELROCIO,Comuna El Rocío,66001,urbano
+66001-C-SANNICOLAS,Comuna San Nicolás,66001,urbano
+76001-C01,Comuna 1,76001,urbano
+76001-C02,Comuna 2,76001,urbano
+76001-C03,Comuna 3,76001,urbano
+76001-C04,Comuna 4,76001,urbano
+76001-C05,Comuna 5,76001,urbano
+76001-C06,Comuna 6,76001,urbano
+76001-C07,Comuna 7,76001,urbano
+76001-C08,Comuna 8,76001,urbano
+76001-C09,Comuna 9,76001,urbano
+76001-C10,Comuna 10,76001,urbano
+76001-C11,Comuna 11,76001,urbano
+76001-C12,Comuna 12,76001,urbano
+76001-C13,Comuna 13,76001,urbano
+76001-C14,Comuna 14,76001,urbano
+76001-C15,Comuna 15,76001,urbano
+76001-C16,Comuna 16,76001,urbano
+76001-C17,Comuna 17,76001,urbano
+76001-C18,Comuna 18,76001,urbano
+76001-C19,Comuna 19,76001,urbano
+76001-C20,Comuna 20,76001,urbano
+76001-C21,Comuna 21,76001,urbano
+76001-C22,Comuna 22,76001,urbano
+27001-C-OTRA,Otra comuna – No está en la lista,27001,urbano
+27001-CO-OTRO,Otro corregimiento – No está en la lista,27001,rural
+27660-C-OTRA,Otra comuna – No está en la lista,27660,urbano
+27660-CO-OTRO,Otro corregimiento – No está en la lista,27660,rural
+66001-C-OTRA,Otra comuna – No está en la lista,66001,urbano
+66001-CO-OTRO,Otro corregimiento – No está en la lista,66001,rural
+66170-C-OTRA,Otra comuna – No está en la lista,66170,urbano
+66170-CO-OTRO,Otro corregimiento – No está en la lista,66170,rural
+66400-C-OTRA,Otra comuna – No está en la lista,66400,urbano
+66400-CO-OTRO,Otro corregimiento – No está en la lista,66400,rural
+66682-C-OTRA,Otra comuna – No está en la lista,66682,urbano
+66682-CO-OTRO,Otro corregimiento – No está en la lista,66682,rural
+76001-C-OTRA,Otra comuna – No está en la lista,76001,urbano
+76001-CO-OTRO,Otro corregimiento – No está en la lista,76001,rural

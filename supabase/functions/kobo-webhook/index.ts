@@ -47,6 +47,19 @@ const DAMAGE_LEVEL: Record<string, string> = {
   fuerte: "heavy",
   severo: "severe",
 };
+const DIVISION_TYPE: Record<string, string> = {
+  urbano: "urban",
+  rural: "rural",
+};
+// tipo de vía (slug del form) → palabra legible para componer la dirección
+const VIA_TIPO: Record<string, string> = {
+  carrera: "Carrera",
+  calle: "Calle",
+  transversal: "Transversal",
+  diagonal: "Diagonal",
+  avenida: "Avenida",
+  otra: "Vía",
+};
 const GLOBAL_DAMAGE: Record<string, string> = {
   ninguno: "none",
   "0_10": "0_10",
@@ -89,6 +102,47 @@ function toNum(value: unknown): number | null {
   if (value == null || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+function text(value: unknown): string | null {
+  const s = value == null ? "" : String(value).trim();
+  return s === "" ? null : s;
+}
+
+/** Geopoint de Kobo: "lat lon alt acc" → {lat, lon} */
+function parseGeopoint(value: unknown): { lat: number; lon: number } | null {
+  if (typeof value !== "string") return null;
+  const [lat, lon] = value.trim().split(/\s+/).map(Number);
+  return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
+}
+
+/** Dirección legible: "Carrera 7 # 45-12 — La finca junto al puente" */
+function buildAddress(s: Submission): string | null {
+  const via = [
+    mapped(VIA_TIPO, s.via_tipo),
+    text(s.via_numero),
+  ].filter(Boolean).join(" ");
+  const placa = text(s.numero_placa);
+  const street = via ? (placa ? `${via} # ${placa}` : via) : null;
+  const parts = [street, text(s.referencia_ubicacion)].filter(Boolean);
+  // fallback: campo `direccion` del formulario anterior a T5b
+  return parts.length > 0 ? parts.join(" — ") : text(s.direccion);
+}
+
+/** Kobo entrega los campos de un grupo con la ruta `grupo/campo` */
+function field(s: Submission, name: string): unknown {
+  if (name in s) return s[name];
+  const key = Object.keys(s).find((k) => k.endsWith(`/${name}`));
+  return key ? s[key] : null;
+}
+
+/** cat_sector-cat_manzana-cat_predio-cat_mejora; NULL si todos vacíos */
+function cadastralId(s: Submission): string | null {
+  const parts = ["cat_sector", "cat_manzana", "cat_predio", "cat_mejora"]
+    .map((name) => text(field(s, name)))
+    .filter(Boolean);
+  // fallback: campo `id_catastral` del formulario anterior a T5b
+  return parts.length > 0 ? parts.join("-") : text(s.id_catastral);
 }
 
 /** Matriz 5.3: {beams: {level, extent_pct}, ...} solo con elementos reportados */
@@ -144,10 +198,22 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
-  const [lat, lon] = (submission._geolocation ?? [null, null]) as (
+  // GPS: `ubicacion` es la fuente de verdad; el start-geopoint de respaldo
+  // (gps_fondo) y `_geolocation` son últimos recursos — nunca perder una
+  // evaluación por GPS.
+  const [geoLat, geoLon] = (submission._geolocation ?? [null, null]) as (
     | number
     | null
   )[];
+  const point = parseGeopoint(submission.ubicacion) ??
+    parseGeopoint(submission.gps) ?? // nombre anterior a T5b
+    parseGeopoint(submission.gps_fondo) ??
+    (geoLat != null && geoLon != null ? { lat: geoLat, lon: geoLon } : null);
+
+  // barrio: slug de barrios.csv, u 'OTRO' + texto libre (flag para que el
+  // gabinete lo resuelva por ST_Contains — assign_territorial_division)
+  const barrio = text(submission.barrio);
+  const neighborhoodUnlisted = barrio === "OTRO";
 
   const { data: caseRow, error } = await supabase
     .from("cases")
@@ -159,15 +225,20 @@ Deno.serve(async (req) => {
         NOT_INSPECTED_REASON,
         submission.motivo_no_inspeccion,
       ),
-      // sección 1 (municipio = código DIVIPOLA, tal cual)
-      municipality: submission.municipio ?? null,
-      commune: submission.comuna ?? null,
-      neighborhood: submission.barrio ?? null,
-      cadastral_id: submission.id_catastral ?? null,
-      // sección 3
-      address: submission.direccion ?? null,
-      building_name: submission.nombre_edificacion ?? null,
-      location: lat != null && lon != null ? `POINT(${lon} ${lat})` : null,
+      // ubicación (T5b; municipio = código DIVIPOLA, tal cual)
+      municipality: text(submission.municipio),
+      division_type: mapped(DIVISION_TYPE, submission.tipo_zona),
+      commune: text(submission.division_urbana) ??
+        text(submission.division_rural) ??
+        text(submission.comuna), // nombre anterior a T5b
+      neighborhood: neighborhoodUnlisted
+        ? text(submission.barrio_otro)
+        : barrio,
+      neighborhood_unlisted: neighborhoodUnlisted,
+      cadastral_id: cadastralId(submission),
+      address: buildAddress(submission),
+      building_name: text(submission.nombre_edificacion),
+      location: point ? `POINT(${point.lon} ${point.lat})` : null,
       floors_above: toInt(submission.pisos_sobre),
       basements: toInt(submission.sotanos),
       building_use: toInt(submission.uso_predominante),

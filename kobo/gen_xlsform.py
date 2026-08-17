@@ -14,6 +14,10 @@ Uso:
     python kobo/gen_xlsform.py
     xls2xform kobo/ais.xlsx /tmp/ais.xml   # validar
 
+Listas territoriales: kobo/media/*.csv (select_one_from_file). Se suben a
+Kobo como media files del formulario (Settings → Media); corregirlas no
+exige redesplegar. Ver kobo/media/README.md (fuentes y TODOs).
+
 Multiidioma: columnas `label::Idioma (cod)`. Para sumar un idioma, añadirlo a
 LANGS y completar los diccionarios {"es": ...}. Los `name` de los campos son
 el contrato con supabase/functions/kobo-webhook: no renombrar a la ligera.
@@ -27,7 +31,11 @@ DEFAULT_LANG = "Español (es)"
 
 I18N_COLS = ["label", "hint", "constraint_message"]
 PLAIN_COLS = ["type", "name", "required", "appearance", "relevant",
-              "constraint", "parameters", "choice_filter"]
+              "constraint", "parameters", "choice_filter", "default"]
+
+# Default de municipio por despliegue (código DIVIPOLA) — parámetro, no
+# hardcode: el form desplegado para la brigada de Pereira puede llevar "66001".
+MUNICIPIO_DEFAULT = ""
 
 # Relevancia común: todo salvo secciones 1-2 se oculta si no se inspeccionó
 INSPECTED = "${tipo_inspeccion} != 'no_inspeccionada'"
@@ -97,29 +105,73 @@ survey = [
      "label": {"es": "¿Por qué no se inspeccionó?"}, "required": "yes",
      "relevant": "${tipo_inspeccion} = 'no_inspeccionada'"},
 
-    # ── Sección 1: identificación catastral ──────────────────────────────
-    # Jerarquía territorial: municipio (código DIVIPOLA) → comuna → barrio.
-    # Los slugs de municipio SON los códigos DIVIPOLA (contrato con la BD).
-    {"type": "select_one municipios", "name": "municipio",
-     "label": {"es": "Municipio"}, "required": "yes", "appearance": "minimal"},
-    {"type": "select_one comunas", "name": "comuna",
+    # ── Secciones 1 y 3: ubicación e identificación (HANDOFF-T5b) ────────
+    # El GPS es la fuente de verdad; los nombres son metadatos legibles
+    # (reasignación por ST_Contains en gabinete). Listas territoriales como
+    # CSV adjuntos (kobo/media/*.csv), NUNCA en la hoja choices: corregir
+    # una lista no puede exigir redesplegar el formulario. Los `name` de
+    # municipios.csv SON los códigos DIVIPOLA (contrato con la BD).
+    {"type": "select_one_from_file municipios.csv", "name": "municipio",
+     "label": {"es": "Municipio"}, "required": "yes", "appearance": "minimal",
+     "default": MUNICIPIO_DEFAULT},
+    {"type": "select_one tipo_zona", "name": "tipo_zona",
+     "label": {"es": "Tipo de zona"}, "required": "yes"},
+    # Urbano y rural comparten estructura (misma columna en BD): dos
+    # preguntas con relevant excluyente en vez de label dinámico — más
+    # simple en XLSForm. Comuna ↔ corregimiento.
+    {"type": "select_one_from_file divisiones.csv", "name": "division_urbana",
      "label": {"es": "Comuna"}, "required": "yes", "appearance": "minimal",
-     "choice_filter": "municipio = ${municipio}"},
-    {"type": "text", "name": "barrio", "label": {"es": "Barrio"},
-     "hint": {"es": "Nombre del barrio dentro de la comuna"}},
-    {"type": "text", "name": "id_catastral",
-     "label": {"es": "Identificación catastral"},
-     "hint": {"es": "sector-manzana-predio-mejora (IGAC), si se conoce"}},
-
-    # ── Sección 3: identificación de la edificación ──────────────────────
-    {"type": "text", "name": "direccion",
-     "label": {"es": "Dirección de la edificación"}, "required": "yes",
-     "hint": {"es": "Como aparece en la placa, o la más aproximada"}},
+     "relevant": "${tipo_zona} = 'urbano'",
+     "choice_filter": "municipio_code=${municipio} and tipo='urbano'"},
+    {"type": "select_one_from_file divisiones.csv", "name": "division_rural",
+     "label": {"es": "Corregimiento"}, "required": "yes",
+     "appearance": "minimal",
+     "relevant": "${tipo_zona} = 'rural'",
+     "choice_filter": "municipio_code=${municipio} and tipo='rural'"},
+    # La fila OTRO de barrios.csv es global: el choice_filter la incluye
+    # siempre para que ninguna lista incompleta bloquee una evaluación.
+    {"type": "select_one_from_file barrios.csv", "name": "barrio",
+     "label": {"es": "Barrio / Vereda"}, "required": "yes",
+     "appearance": "minimal",
+     "choice_filter": "division_code=if(${tipo_zona} = 'urbano', "
+                      "${division_urbana}, ${division_rural}) "
+                      "or name='OTRO'"},
+    {"type": "text", "name": "barrio_otro", "label": {"es": "¿Cuál?"},
+     "required": "yes", "relevant": "${barrio} = 'OTRO'"},
+    {"type": "select_one via_tipo", "name": "via_tipo",
+     "label": {"es": "Tipo de vía"},
+     "relevant": "${tipo_zona} = 'urbano'"},
+    {"type": "text", "name": "via_numero", "label": {"es": "Número de vía"},
+     "relevant": "${tipo_zona} = 'urbano'"},
+    {"type": "text", "name": "numero_placa", "label": {"es": "Número (placa)"},
+     "relevant": "${tipo_zona} = 'urbano'"},
+    {"type": "text", "name": "referencia_ubicacion",
+     "label": {"es": "Referencia de ubicación"},
+     "hint": {"es": "Finca, kilómetro, punto de referencia"}},
     {"type": "text", "name": "nombre_edificacion",
-     "label": {"es": "Nombre de la edificación (si tiene)"}},
-    {"type": "geopoint", "name": "gps", "label": {"es": "Ubicación GPS"},
+     "label": {"es": "Nombre de la edificación (si tiene)"},
+     "hint": {"es": "Propiedad horizontal o institución"}},
+    # Sin constraint que impida guardar por ubicación: el GPS puede fallar
+    # bajo techo; el webhook acepta el start-geopoint de respaldo como
+    # último recurso. Nunca perder una evaluación por GPS.
+    {"type": "geopoint", "name": "ubicacion", "label": {"es": "Ubicación GPS"},
      "required": "yes",
-     "hint": {"es": "Capturar de pie frente a la edificación, con cielo visible"}},
+     "hint": {"es": "Capturar de pie frente a la edificación, con cielo "
+                    "visible. Si no captura bajo techo, reintentar afuera."}},
+    # La identificación catastral (IGAC) NO se le exige al brigadista: el
+    # manual AIS asigna el número predial en oficina cruzando con catastro.
+    {"type": "begin_group", "name": "catastral",
+     "label": {"es": "Identificación catastral (opcional)"},
+     "appearance": "field-list",
+     "hint": {"es": "Solo si tiene el recibo de predial a la vista"}},
+    {"type": "text", "name": "cat_sector", "label": {"es": "Sector"}},
+    {"type": "text", "name": "cat_manzana", "label": {"es": "Manzana"}},
+    {"type": "text", "name": "cat_predio", "label": {"es": "Predio"}},
+    {"type": "text", "name": "cat_mejora",
+     "label": {"es": "Mejora / Prop. horizontal"}},
+    {"type": "end_group", "name": ""},
+
+    # ── Sección 3 (continuación): características de la edificación ──────
     {"type": "integer", "name": "pisos_sobre",
      "label": {"es": "Niveles sobre el terreno"}, "required": "yes",
      "relevant": INSPECTED, "constraint": ". >= 1 and . <= 50",
@@ -241,48 +293,21 @@ motivos_no_inspeccion = [
     ("otro", {"es": "Otro"}),
 ]
 
-# Municipios afectados; el `name` ES el código DIVIPOLA (DANE). Ampliar la
-# lista según avance el operativo.
-municipios = [
-    ("66001", {"es": "Pereira"}),
-    ("66170", {"es": "Dosquebradas"}),
-    ("66682", {"es": "Santa Rosa de Cabal"}),
-    ("66400", {"es": "La Virginia"}),
-    ("76001", {"es": "Cali"}),
-    ("27001", {"es": "Quibdó"}),
-    ("otro", {"es": "Otro municipio"}),
+# Las listas territoriales (municipios, divisiones, barrios) viven en
+# kobo/media/*.csv como media files del formulario (HANDOFF-T5b): corregir
+# una lista no exige redesplegar. Aquí solo quedan listas estables.
+tipo_zona = [
+    ("urbano", {"es": "Urbana"}),
+    ("rural", {"es": "Rural"}),
 ]
 
-# Comunas por municipio (columna `municipio` para el choice_filter).
-# Pereira: comunas con nombre; Cali: comunas numeradas 1-22; el resto usa la
-# opción "Otra / no aplica" hasta curar sus listas.
-_PEREIRA = "66001"
-comunas = [
-    ("centro", {"es": "Centro"}, _PEREIRA),
-    ("rio_otun", {"es": "Río Otún"}, _PEREIRA),
-    ("villavicencio", {"es": "Villavicencio"}, _PEREIRA),
-    ("villa_santana", {"es": "Villa Santana"}, _PEREIRA),
-    ("oriente", {"es": "Oriente"}, _PEREIRA),
-    ("universidad", {"es": "Universidad"}, _PEREIRA),
-    ("boston", {"es": "Boston"}, _PEREIRA),
-    ("jardin", {"es": "Jardín"}, _PEREIRA),
-    ("cuba", {"es": "Cuba"}, _PEREIRA),
-    ("consota", {"es": "Consotá"}, _PEREIRA),
-    ("el_oso", {"es": "El Oso"}, _PEREIRA),
-    ("san_joaquin", {"es": "San Joaquín"}, _PEREIRA),
-    ("perla_del_otun", {"es": "Perla del Otún"}, _PEREIRA),
-    ("olimpica", {"es": "Olímpica"}, _PEREIRA),
-    ("ferrocarril", {"es": "Ferrocarril"}, _PEREIRA),
-    ("del_cafe", {"es": "Del Café"}, _PEREIRA),
-    ("el_poblado", {"es": "El Poblado"}, _PEREIRA),
-    ("el_rocio", {"es": "El Rocío"}, _PEREIRA),
-    ("san_nicolas", {"es": "San Nicolás"}, _PEREIRA),
-    *[(f"cali_{n}", {"es": f"Comuna {n}"}, "76001") for n in range(1, 23)],
-]
-# opción de escape por municipio (zona rural / lista sin curar)
-comunas += [
-    (f"otra_{code}" if code != "otro" else "otra", {"es": "Otra / zona rural"}, code)
-    for code, _label in municipios
+via_tipo = [
+    ("carrera", {"es": "Carrera"}),
+    ("calle", {"es": "Calle"}),
+    ("transversal", {"es": "Transversal"}),
+    ("diagonal", {"es": "Diagonal"}),
+    ("avenida", {"es": "Avenida"}),
+    ("otra", {"es": "Otra"}),
 ]
 
 # Códigos oficiales AIS (sección 4) — el `name` ES el código
@@ -378,8 +403,8 @@ CHOICES = [
     ("confirmaciones", confirmaciones),
     ("tipos_inspeccion", tipos_inspeccion),
     ("motivos_no_inspeccion", motivos_no_inspeccion),
-    ("municipios", municipios),
-    ("comunas", comunas),
+    ("tipo_zona", tipo_zona),
+    ("via_tipo", via_tipo),
     ("sistemas_estructurales", sistemas_estructurales),
     ("tipos_entrepiso", tipos_entrepiso),
     ("usos", usos),
@@ -417,19 +442,15 @@ for row in survey:
 
 ws = wb.create_sheet("choices")
 ws.append(["list_name", "name"]
-          + [f"label::{lang}" for lang in LANGS.values()]
-          + ["municipio"])  # columna del choice_filter municipio→comuna
+          + [f"label::{lang}" for lang in LANGS.values()])
 for list_name, items in CHOICES:
-    for row in items:
-        name, label = row[0], row[1]
-        extra = row[2] if len(row) > 2 else ""
+    for name, label in items:
         ws.append([list_name, name]
-                  + [label.get(code, "") for code in LANGS]
-                  + [extra])
+                  + [label.get(code, "") for code in LANGS])
 
 ws = wb.create_sheet("settings")
 ws.append(["form_title", "form_id", "version", "default_language"])
-ws.append(["SafeTag — Formulario Único AIS (v1)", "safetag_ais", "2026081605",
+ws.append(["SafeTag — Formulario Único AIS (v1)", "safetag_ais", "2026081701",
            DEFAULT_LANG])
 
 out = Path(__file__).parent / "ais.xlsx"

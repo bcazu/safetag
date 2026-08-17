@@ -29,8 +29,12 @@ traduce nombres y slugs a las columnas en inglés de `cases` (migración 0004).
 | — | `aviso_comunicado` (aviso de privacidad) | *(no se mapea; queda en el registro crudo de Kobo como evidencia de la comunicación del aviso — ver `docs/politica-datos.md`)* |
 | 2 | `tipo_inspeccion` | `inspection_type` (`exterior/partial/complete/not_inspected`) |
 | 2 | `motivo_no_inspeccion` | `not_inspected_reason` |
-| 1 | `comuna` / `barrio` / `id_catastral` | `commune` / `neighborhood` / `cadastral_id` |
-| 3 | `direccion` / `nombre_edificacion` / `gps` | `address` / `building_name` / `location` |
+| 1/3 | `municipio` / `tipo_zona` | `municipality` (código DIVIPOLA) / `division_type` (`urban`/`rural`) |
+| 1/3 | `division_urbana` o `division_rural` | `commune` (misma columna; slug de `divisiones.csv`) |
+| 1/3 | `barrio` (o `barrio_otro` si `barrio='OTRO'`) | `neighborhood` (+ `neighborhood_unlisted=true` si vino de texto libre) |
+| 1/3 | `via_tipo`+`via_numero`+`numero_placa` / `referencia_ubicacion` | `address` (concatenación legible) |
+| 1 | `cat_sector`+`cat_manzana`+`cat_predio`+`cat_mejora` | `cadastral_id` (con guiones; NULL si todos vacíos) |
+| 3 | `nombre_edificacion` / `ubicacion` | `building_name` / `location` (fallback: `gps_fondo` y `_geolocation`) |
 | 3 | `pisos_sobre` / `sotanos` | `floors_above` / `basements` |
 | 3 | `uso_predominante` / `uso_planta_baja` | `building_use` / `ground_floor_use` (códigos 1–11) |
 | 3 | `frente_m` / `fondo_m` | `front_m` / `depth_m` |
