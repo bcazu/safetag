@@ -77,7 +77,7 @@ function App() {
         </div>
       </header>
       <Routes>
-        <Route path="/" element={<Queue />} />
+        <Route path="/" element={<Queue reviewer={reviewer} />} />
         <Route path="/mapa" element={<MapPage />} />
         <Route path="/caso/:id" element={<CaseDetail reviewer={reviewer} />} />
       </Routes>

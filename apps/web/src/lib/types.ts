@@ -11,6 +11,8 @@ export interface CaseRow {
   status: "pending" | "in_review" | "assessed";
   priority: number;
   created_at: string;
+  assigned_reviewer_id: string | null;
+  assigned_at: string | null;
   inspection_type: string | null;
   not_inspected_reason: string | null;
   structural_system: AisStructuralSystem | null;
@@ -45,6 +47,22 @@ export interface ReviewerRow {
   license_status: "unverified" | "active" | "suspended";
   specialty: "structural" | "geotechnical" | "general" | null;
   can_recommend_demolition: boolean;
+}
+
+export interface AssessmentRow {
+  id: string;
+  reviewer_id: string;
+  result: "green" | "yellow" | "orange" | "red" | "site_visit";
+  derived_result: "green" | "yellow" | "orange" | "red" | null;
+  risk_global_stability: string | null;
+  risk_geotechnical: string | null;
+  risk_structural: string | null;
+  risk_nonstructural: string | null;
+  override_justification: string | null;
+  notes: string | null;
+  safety_measures: string[] | null;
+  specialist_visit: string[] | null;
+  signed_at: string;
 }
 
 export interface PhotoRow {

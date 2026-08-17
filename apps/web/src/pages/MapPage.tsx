@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
-import { latLngBounds } from 'leaflet'
+import { CircleMarker, MapContainer, Popup, TileLayer, useMap } from 'react-leaflet'
+import { latLngBounds, type LatLngBounds } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { supabase } from '../lib/supabase'
 
@@ -35,12 +35,29 @@ function markerColor(c: MapCase): string {
   return (c.result && RESULT_COLORS[c.result]) || PENDING_COLOR
 }
 
+// los slugs de comuna vienen del formulario Kobo ('villa_santana')
+function communeLabel(slug: string): string {
+  const s = slug.replaceAll('_', ' ')
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+// MapContainer solo aplica bounds al montar; esto re-encuadra al filtrar
+function FitBounds({ bounds }: { bounds: LatLngBounds | null }) {
+  const map = useMap()
+  useEffect(() => {
+    if (bounds) map.fitBounds(bounds)
+  }, [map, bounds])
+  return null
+}
+
 export default function MapPage() {
   const { t } = useTranslation()
   // null = cargando; el mapa solo se monta con datos porque MapContainer
   // fija centro/bounds únicamente en el montaje
   const [cases, setCases] = useState<MapCase[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [communeFilter, setCommuneFilter] = useState('')
+  const [resultFilter, setResultFilter] = useState('')
 
   useEffect(() => {
     supabase
@@ -52,12 +69,30 @@ export default function MapPage() {
       })
   }, [])
 
+  // comunas presentes en los datos = territorios donde hay revisiones
+  const communes = useMemo(
+    () =>
+      [...new Set((cases ?? []).map((c) => c.commune).filter(Boolean))].sort() as string[],
+    [cases],
+  )
+
+  const visible = useMemo(
+    () =>
+      (cases ?? []).filter(
+        (c) =>
+          (!communeFilter || c.commune === communeFilter) &&
+          (!resultFilter ||
+            (resultFilter === 'unassessed' ? !c.result : c.result === resultFilter)),
+      ),
+    [cases, communeFilter, resultFilter],
+  )
+
   const bounds = useMemo(
     () =>
-      cases && cases.length > 0
-        ? latLngBounds(cases.map((c) => [c.lat, c.lng] as [number, number])).pad(0.2)
+      visible.length > 0
+        ? latLngBounds(visible.map((c) => [c.lat, c.lng] as [number, number])).pad(0.2)
         : null,
-    [cases],
+    [visible],
   )
 
   if (error) return <main className="page error">{error}</main>
@@ -72,6 +107,34 @@ export default function MapPage() {
 
   return (
     <main className="map-main">
+      <div className="map-filters">
+        <select
+          value={communeFilter}
+          onChange={(e) => setCommuneFilter(e.target.value)}
+        >
+          <option value="">{t('app:map.allCommunes')}</option>
+          {communes.map((c) => (
+            <option key={c} value={c}>
+              {communeLabel(c)}
+            </option>
+          ))}
+        </select>
+        <select
+          value={resultFilter}
+          onChange={(e) => setResultFilter(e.target.value)}
+        >
+          <option value="">{t('app:map.allResults')}</option>
+          {Object.keys(RESULT_COLORS).map((r) => (
+            <option key={r} value={r}>
+              {t(`assessment.result.${r}`)}
+            </option>
+          ))}
+          <option value="unassessed">{t('app:map.unassessed')}</option>
+        </select>
+        <span className="hint">
+          {t('app:map.count', { count: visible.length })}
+        </span>
+      </div>
       <MapContainer
         className="map"
         {...(bounds ? { bounds } : { center: DEFAULT_CENTER, zoom: 13 })}
@@ -82,7 +145,8 @@ export default function MapPage() {
           url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
-        {cases.map((c) => (
+        <FitBounds bounds={bounds} />
+        {visible.map((c) => (
           <CircleMarker
             key={c.id}
             center={[c.lat, c.lng]}

@@ -25,7 +25,11 @@
   },
   "map": {
     "title": "Mapa",
-    "unassessed": "Sin dictamen"
+    "unassessed": "Sin dictamen",
+    "allCommunes": "Todas las comunas",
+    "allResults": "Todos los estados",
+    "count_one": "{{count}} caso",
+    "count_other": "{{count}} casos"
   },
   "queue": {
     "title": "Cola de revisión",
@@ -51,6 +55,12 @@
     "thresholds": "Umbrales de grieta del sistema ({{appliesTo}})",
     "thresholdsUnknown": "Sin umbrales verificados para este sistema: {{reason}}. Clasifica el nivel de daño manualmente.",
     "extent": "extensión"
+  },
+  "claim": {
+    "intro": "Para dictaminar este caso primero tómalo: así ningún otro revisor trabajará sobre él en paralelo.",
+    "take": "Tomar caso",
+    "release": "← Soltar caso (vuelve a la cola)",
+    "takenByOther": "Otro revisor tiene este caso en revisión desde {{since}}."
   },
   "assessment": {
     "title": "Dictamen",

@@ -13,7 +13,7 @@ import {
   type Risks,
 } from '@safetag/rules'
 import { supabase } from '../lib/supabase'
-import type { CaseRow, PhotoRow, ReviewerRow } from '../lib/types'
+import type { AssessmentRow, CaseRow, PhotoRow, ReviewerRow } from '../lib/types'
 
 const RISK_KEYS = [
   'globalStability',
@@ -43,6 +43,7 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
 
   const [caseRow, setCaseRow] = useState<CaseRow | null>(null)
   const [photos, setPhotos] = useState<(PhotoRow & { url: string | null })[]>([])
+  const [assessments, setAssessments] = useState<AssessmentRow[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const [risks, setRisks] = useState<Partial<Record<RiskKey, RiskLevel>>>({})
@@ -61,7 +62,7 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
     supabase
       .from('cases')
       .select(
-        'id, address, neighborhood, commune, building_name, status, priority, created_at, inspection_type, not_inspected_reason, structural_system, floor_system, year_range, building_use, ground_floor_use, floors_above, basements, worst_damaged_floor, global_damage_pct, warning_signs, structural_damage, geotechnical',
+        'id, address, neighborhood, commune, building_name, status, priority, created_at, inspection_type, not_inspected_reason, structural_system, floor_system, year_range, building_use, ground_floor_use, floors_above, basements, worst_damaged_floor, global_damage_pct, warning_signs, structural_damage, geotechnical, assigned_reviewer_id, assigned_at',
       )
       .eq('id', id)
       .single()
@@ -69,6 +70,12 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
         if (error) setLoadError(error.message)
         else setCaseRow(data as CaseRow)
       })
+    supabase
+      .from('assessments')
+      .select('*')
+      .eq('case_id', id)
+      .order('signed_at', { ascending: false })
+      .then(({ data }) => setAssessments((data as AssessmentRow[]) ?? []))
     supabase
       .from('photos')
       .select('*')
@@ -121,6 +128,57 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
     if (next.has(value)) next.delete(value)
     else next.add(value)
     apply(next)
+  }
+
+  const mine = caseRow?.assigned_reviewer_id === reviewer.id
+
+  // Reclamo atómico: la condición status='pending' hace que el segundo en
+  // llegar actualice cero filas (y recargue el estado real del caso)
+  async function claim() {
+    const { data, error } = await supabase
+      .from('cases')
+      .update({
+        status: 'in_review',
+        assigned_reviewer_id: reviewer.id,
+        assigned_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .eq('status', 'pending')
+      .select('id')
+    if (error) {
+      setFormError(error.message)
+      return
+    }
+    if (!data || data.length === 0) {
+      // otro revisor lo tomó primero: refrescar
+      const { data: fresh } = await supabase
+        .from('cases')
+        .select('status, assigned_reviewer_id, assigned_at')
+        .eq('id', id)
+        .single()
+      if (fresh) setCaseRow({ ...caseRow!, ...(fresh as Partial<CaseRow>) })
+      return
+    }
+    setCaseRow({
+      ...caseRow!,
+      status: 'in_review',
+      assigned_reviewer_id: reviewer.id,
+    })
+  }
+
+  async function release() {
+    const { error } = await supabase
+      .from('cases')
+      .update({ status: 'pending', assigned_reviewer_id: null, assigned_at: null })
+      .eq('id', id)
+      .eq('assigned_reviewer_id', reviewer.id)
+    if (error) setFormError(error.message)
+    else
+      setCaseRow({
+        ...caseRow!,
+        status: 'pending',
+        assigned_reviewer_id: null,
+      })
   }
 
   async function submit(e: FormEvent) {
@@ -303,14 +361,98 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
 
       <section>
         <h3>{t('app:assessment.title')}</h3>
-        {structuralBlocked && (
-          <p className="error">
-            {t('app:assessment.needStructural', {
-              use: t(`buildingUse.${caseRow.building_use}`),
+
+        {/* dictámenes ya firmados: lectura, no re-dictamen */}
+        {assessments && assessments.length > 0 ? (
+          assessments.map((a) => (
+            <article key={a.id} className="assessment-card">
+              <p className={`derived derived-${a.result}`}>
+                {t(`assessment.result.${a.result}`)}
+              </p>
+              {a.derived_result && a.result !== a.derived_result && (
+                <p className="notice">
+                  {t('app:assessment.derived')}:{' '}
+                  {t(`assessment.result.${a.derived_result}`)} —{' '}
+                  {a.override_justification}
+                </p>
+              )}
+              <dl className="facts">
+                {(
+                  [
+                    ['globalStability', a.risk_global_stability],
+                    ['geotechnical', a.risk_geotechnical],
+                    ['structural', a.risk_structural],
+                    ['nonstructural', a.risk_nonstructural],
+                  ] as const
+                ).map(
+                  ([key, level]) =>
+                    level && (
+                      <span key={key} style={{ display: 'contents' }}>
+                        <dt>{t(`risk.${key}`)}</dt>
+                        <dd>{t(`riskLevel.${level}`)}</dd>
+                      </span>
+                    ),
+                )}
+                {a.safety_measures && a.safety_measures.length > 0 && (
+                  <>
+                    <dt>{t('app:assessment.measures')}</dt>
+                    <dd>
+                      {a.safety_measures
+                        .map((m) => t(`safetyMeasure.${m}`))
+                        .join(', ')}
+                    </dd>
+                  </>
+                )}
+                {a.specialist_visit && a.specialist_visit.length > 0 && (
+                  <>
+                    <dt>{t('app:assessment.specialistVisit')}</dt>
+                    <dd>
+                      {a.specialist_visit
+                        .map((v) => t(`specialistVisit.${v}`))
+                        .join(', ')}
+                    </dd>
+                  </>
+                )}
+                {a.notes && (
+                  <>
+                    <dt>{t('app:assessment.notes')}</dt>
+                    <dd>{a.notes}</dd>
+                  </>
+                )}
+                <dt>{t('assessment.signedAt')}</dt>
+                <dd>{new Date(a.signed_at).toLocaleString()}</dd>
+              </dl>
+            </article>
+          ))
+        ) : caseRow.status === 'pending' ? (
+          <div className="stack">
+            <p className="notice">{t('app:claim.intro')}</p>
+            <button type="button" onClick={claim}>
+              {t('app:claim.take')}
+            </button>
+            {formError && <p className="error">{formError}</p>}
+          </div>
+        ) : !mine ? (
+          <p className="notice">
+            {t('app:claim.takenByOther', {
+              since: caseRow.assigned_at
+                ? new Date(caseRow.assigned_at).toLocaleString()
+                : '—',
             })}
           </p>
-        )}
-        <form onSubmit={submit} className="stack">
+        ) : (
+          <>
+            <button type="button" className="linklike" onClick={release}>
+              {t('app:claim.release')}
+            </button>
+            {structuralBlocked && (
+              <p className="error">
+                {t('app:assessment.needStructural', {
+                  use: t(`buildingUse.${caseRow.building_use}`),
+                })}
+              </p>
+            )}
+            <form onSubmit={submit} className="stack">
           <fieldset>
             <legend>{t('app:assessment.risks')}</legend>
             {RISK_KEYS.map((key) => {
@@ -455,7 +597,9 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
           >
             {t(busy ? 'app:assessment.submitting' : 'app:assessment.submit')}
           </button>
-        </form>
+            </form>
+          </>
+        )}
       </section>
     </main>
   )

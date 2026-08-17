@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { routeCase, AIS_STRUCTURAL_SYSTEMS } from '@safetag/rules'
 import { supabase } from '../lib/supabase'
-import type { CaseRow } from '../lib/types'
+import type { CaseRow, ReviewerRow } from '../lib/types'
 
-export default function Queue() {
+export default function Queue({ reviewer }: { reviewer: ReviewerRow }) {
   const { t } = useTranslation()
   const [cases, setCases] = useState<CaseRow[] | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -14,7 +14,7 @@ export default function Queue() {
     supabase
       .from('cases')
       .select(
-        'id, address, neighborhood, commune, building_name, status, priority, created_at, structural_system, building_use, floors_above, global_damage_pct, geotechnical',
+        'id, address, neighborhood, commune, building_name, status, priority, created_at, structural_system, building_use, floors_above, global_damage_pct, geotechnical, assigned_reviewer_id',
       )
       .in('status', ['pending', 'in_review'])
       .order('priority', { ascending: false })
@@ -46,7 +46,13 @@ export default function Queue() {
                 {c.commune && <span> · {c.commune}</span>}
               </div>
               <div className="case-meta">
-                <span>{t(`case.status.${c.status}`)}</span>
+                <span>
+                  {c.status === 'in_review'
+                    ? c.assigned_reviewer_id === reviewer.id
+                      ? t('app:queue.assignedToMe')
+                      : t('app:queue.assignedToOther')
+                    : t(`case.status.${c.status}`)}
+                </span>
                 <span>
                   {c.priority} {t('app:queue.priorityShort')}
                 </span>
