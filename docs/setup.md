@@ -89,11 +89,11 @@ Debe responder `ok` y aparecer una fila en `cases`.
 1. Cuenta gratuita en <https://kf.kobotoolbox.org> (servidor global; el plan
    Community es suficiente y para uso humanitario hay límites ampliados —
    solicitar el plan humanitario desde el perfil si el volumen crece).
-2. **New project → Upload an XLSForm** → subir `kobo/atc20.xlsx` → **Deploy**.
+2. **New project → Upload an XLSForm** → subir `kobo/ais.xlsx` → **Deploy**.
 
-### 2.2 Formulario ATC-20
+### 2.2 Formulario Único AIS
 
-El formulario completo vive en `kobo/atc20.xlsx` (campos, listas de opciones
+El formulario completo vive en `kobo/ais.xlsx` (campos, listas de opciones
 y mapeo al esquema documentados en `kobo/README.md`). Incluye GPS automático
 en segundo plano (`start-geopoint`) como respaldo del geopoint manual y
 compresión de fotos client-side (`max-pixels`).

@@ -67,6 +67,84 @@ PDF completo: `https://idea.manizales.unal.edu.co/sitios/gestion_riesgos/descarg
 
 > Dato curioso y algo humillante: el manual de 2003 ya contemplaba <cite index="11-1">una aplicación de computador o sistema experto basado en redes neuronales artificiales para apoyar la evaluación por parte de profesionales no especialistas</cite>. Tu fase 2 tiene 23 años de antigüedad conceptual. Úsalo como argumento de venta, no como desánimo.
 
+### Alcance: es nacional, no local
+
+Existen ediciones con distinta carátula (Bogotá/FOPAE 2002, Manizales 2003) pero la
+metodología es la misma y fue concebida <cite index="11-1">para consolidar una metodología básica que pueda ser aplicada a nivel nacional</cite>. Sirve igual en Pereira, Cali, Quibdó o San José del Palmar.
+
+Lo único que cambia por territorio:
+
+- **División administrativa.** La sección 1 dice "MANZANA **O VEREDA**": el formato ya
+  contempla lo rural. Urbano = comuna/barrio; rural = corregimiento/vereda.
+- **Sistemas constructivos dominantes.** En el Eje Cafetero y Cali predominan concreto y
+  mampostería confinada (códigos 11–14, 21). En zona rural del Chocó predominan bahareque,
+  tapia y madera (41, 42, 51, 52), que tienen umbrales de daño más laxos. El manual los
+  cubre todos; el riesgo es aplicar los umbrales de concreto a una vivienda de bahareque.
+- **Códigos DANE e IGAC.** Mismos esquemas nacionales.
+
+Consecuencia de producto: **el software es uno solo.** Lo que no se replica automáticamente
+es la relación institucional con cada alcaldía o gremio.
+
+### Clasificación de cada riesgo — lo verificado y lo pendiente
+
+**Riesgo por estabilidad global (Tabla 3-2, verificada):**
+
+| Nivel | Criterio |
+|---|---|
+| Muy alto | <cite index="130-1">Colapso total o parcial superior al 50%, edificio notablemente inclinado, o entrepisos completamente desplomados que representan peligro para el ingreso, las edificaciones vecinas o la circulación</cite> |
+| Alto | <cite index="130-1">Colapso parcial inferior al 50% y superior al 5%, cuya parte no colapsada no está sobrecargada ni en condiciones de colapso progresivo</cite> |
+| Bajo después de medidas | <cite index="130-1">Colapso o inclinación muy puntual (inferior al 5%) que una vez apuntalados no representan peligro</cite> |
+| Bajo | <cite index="130-1">No existe colapso, inclinación ni desplome de ningún entrepiso</cite> |
+
+Regla cuantitativa de inclinación (verificada): <cite index="130-1">para edificaciones aporticadas de varios pisos, inclinación superior a 2 grados —desplazamiento horizontal mayor a 1/30 de la altura— se considera de alto riesgo; con entrepiso de 2,5 m eso equivale a más de 8 cm de desplome por piso. Se tolera más deformación en estructuras livianas de uno y dos pisos en madera o bahareque que en estructuras pesadas y no dúctiles</cite>. Además, <cite index="130-1">cualquier edificación de pórticos, particularmente las más altas, con deriva residual en uno o más pisos debe considerarse de muy alto riesgo</cite>.
+
+**Riesgo geotécnico (Tabla 3-3, verificada):**
+
+| Nivel | Criterio |
+|---|---|
+| Muy alto | <cite index="130-1">El fenómeno produjo fallas severas en la cimentación, o hay hundimiento/inclinación/asentamiento; o la edificación está sobre o muy cerca del área de influencia con potencial de reactivación inminente o muy probable</cite> |
+| Alto | <cite index="130-1">Fenómeno puntual que sugiere disminución significativa de la capacidad del suelo; o edificación a distancia insuficiente para excluirla del área de influencia con reactivación inminente a muy probable</cite> |
+| Bajo después de medidas | <cite index="130-1">No está en el área de influencia pero sí en sus proximidades; se recomiendan medidas preventivas porque la reactivación es probable</cite> |
+| Bajo | <cite index="130-1">El fenómeno no produjo daños y tiene probabilidad menor de reactivación</cite> |
+
+**Riesgo estructural y no estructural (Tablas 3-13 y 3-21): NO VERIFICADAS.**
+El PDF público se trunca antes de esas páginas. Ver "Vacíos conocidos" abajo.
+
+### Vacíos conocidos — pendientes de fuente primaria
+
+La extracción del PDF (idea.manizales.unal.edu.co) se corta hacia la página 40 de 71.
+Falta el contenido literal de:
+
+| Tabla | Qué define | Impacto si falta |
+|---|---|---|
+| 3-8 | Niveles de daño en **bahareque** (distinto de tapia: tiene su propia tabla) | El motor de reglas no puede clasificar el sistema 51 con números reales |
+| 3-9 | Niveles de daño en **acero** (vigas, columnas, conexiones) | Sistemas 31–33 sin criterios |
+| 3-10 | Niveles de daño en **madera** | Sistemas 41–42 sin criterios |
+| 3-11 | Niveles de daño en **entrepisos** | Falta el criterio del cuarto elemento de la matriz 5.3 |
+| 3-12 | Elementos que **saturan** el daño global | Regla de agravamiento desconocida |
+| 3-13 | **Severidad + extensión → nivel de riesgo estructural** | La tabla más importante para guiar al revisor: sin ella la UI no puede sugerir el riesgo estructural |
+| 3-21 | Definición del riesgo **no estructural** | En el formulario impreso este riesgo parece tener solo 3 niveles (sin "Muy alto") — hay que confirmarlo con la tabla |
+| 3-22 | Habitabilidad según riesgos | La lógica ya está impresa en el formulario (verificada), pero la tabla puede tener matices |
+
+**Cómo cerrarlos:** (a) descargar el PDF completo y leer las páginas 40–70 localmente
+— la URL es pública; (b) pedirle el manual físico o el PDF íntegro a la AIR/AIS en el
+primer contacto (pregunta gratuita que además demuestra rigor); (c) buscar la Guía
+Técnica de Bogotá 2002 o el material del IDIGER, que contienen tablas equivalentes.
+**Ninguna de estas tablas debe inventarse ni estimarse**: son criterios firmados por el
+Comité AIS-400 y un valor equivocado produce dictámenes equivocados.
+
+### Otras incertidumbres declaradas
+
+- **Vigencia de la versión.** Lo verificado es la edición Manizales 2003 (v1.0). Puede
+  existir una edición posterior de la AIS o del IDIGER. Confirmar en el primer contacto
+  qué versión usan las brigadas hoy — la Escuela Colombiana llevó *su propia guía* a
+  Pereira, lo que sugiere que no hay un único formato en uso.
+- **Ley 2474 de 2025** modificó la Ley 1523 (incluida la definición de calamidad
+  pública); solo se verificó que existe la modificación, no su texto.
+- **Nombres de funcionarios** (director DIGER, secretarios) provienen de noticias y
+  directorios que pueden estar desactualizados: confirmar por teléfono antes de dirigir
+  correos nominales.
+
 ### Las 17 secciones
 
 | # | Sección | Contenido |
@@ -360,6 +438,43 @@ Para el PMU / Asociación de Ingenieros de Risaralda / AIS:
 **La pregunta 5 decide el producto.** Si el cuello es coordinación y consolidación —que es
 lo que sugiere todo lo anterior— el dashboard y la cola valen más que la IA, y la fase 2
 puede esperar indefinidamente.
+
+---
+
+## 7. Interlocutores por territorio
+
+### Pereira
+- **AIR – Asociación de Ingenieros de Risaralda** — Calle 17 N° 6-42 Of. 302, Ed. Club
+  Rialto. WhatsApp 311 631 2210 · presidencia@air.org.co · director@air.org.co.
+  Coordinan voluntarios desde el 10 de agosto; ~10 % de 180.000 predios evaluados.
+- **DIGER Pereira** — diger@pereira.gov.co · 324 8110 · conmutador (606) 324 8000.
+  Cl. 19 #10-02. Autoridad municipal bajo Ley 1523.
+- **Escuela Colombiana de Ingeniería + Asocapitales** — seis equipos en terreno,
+  prioridad infraestructura educativa. Enlace logístico: José Ignacio Nieto García.
+
+### Cali
+- **Secretaría de Gestión del Riesgo de Emergencias y Desastres** — Hotel Aristi,
+  Calle 11 #9-20 piso 9. Secretario: Ricardo Peñuela.
+- **Punto de voluntarios técnicos**: <cite index="53-1">Cruz Roja Seccional Valle del Cauca, Cra. 38 Bis #5-91, con personal de la Secretaría presente todo el día</cite>.
+- **SCA regional Valle** — co-organiza la convocatoria de evaluadores.
+- **Gobernación del Valle** — secretario Francisco Javier Tenorio Lara.
+  Líneas: 315 584 6176 · 322 542 5084 · 315 529 9442.
+- Señal de oportunidad: <cite index="51-1">el censo se está haciendo presencial, casa por casa y con formatos físicos</cite>.
+
+### Chocó
+Contexto operativo distinto. <cite index="117-1">San José del Palmar sigue sin luz ni agua potable, con la única carretera bloqueada por deslizamientos y acceso solo por helicóptero; la falta de señal impide cerrar los reportes de daños en las veredas</cite>. <cite index="113-1">La UNGRD entregó equipos Starlink; el fondo municipal de gestión del riesgo era de poco más de 32 millones de pesos, y el municipio no tiene conexión terrestre directa con Quibdó — se accede desde Cartago</cite>.
+
+- **Gobernación del Chocó** — choco.gov.co, Consejo Departamental de Gestión del Riesgo.
+  Gobernadora: Nubia Carolina Córdoba-Curi.
+- **Alcaldía de Quibdó** — Cra. 2 #24A-32.
+- **UTCH – Universidad Tecnológica del Chocó** — fuente local de brigadistas capacitables.
+- **UNGRD** — contactenos@gestiondelriesgo.gov.co · 01-8000-113200. Para Chocó la vía
+  nacional es más viable que la municipal: no hay cuerpo gremial local que coordinar.
+
+### Nacionales
+- **AIS** (asosismica.org.co) — autores del formulario, dan legitimidad técnica.
+- **SCI** — Cra. 4 #10-41 Bogotá · prensasci@sci.org.co · socios@sci.org.co.
+  Presidente Hernando Monroy Benítez (vigente a feb. 2026).
 
 ---
 

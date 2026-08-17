@@ -90,10 +90,13 @@ ALTER TABLE assessments ADD CONSTRAINT override_needs_reason
 ```sql
 -- cases: campos del Formulario Único AIS
 ALTER TABLE cases
+  ADD COLUMN municipality_code    text,   -- código DANE: 66001 Pereira, 76001 Cali,
+                                          -- 27001 Quibdó, 27660 San José del Palmar
+  ADD COLUMN division_type        text,   -- 'urban' | 'rural'
   ADD COLUMN inspection_type      text,   -- exterior|partial|complete|not_inspected
   ADD COLUMN not_inspected_reason text,   -- no_permitido|desocupada|colapso|demolida|otro
   ADD COLUMN cadastral_id         text,   -- sector-manzana-predio-mejora (IGAC)
-  ADD COLUMN commune              text,
+  ADD COLUMN commune              text,   -- comuna (urbano) o corregimiento (rural)
   ADD COLUMN building_name        text,
   ADD COLUMN structural_system    text,   -- código AIS, ver tabla abajo
   ADD COLUMN floor_system         text,
@@ -119,6 +122,22 @@ ALTER TABLE cases
 `warning_signs jsonb` puede quedarse como señales rápidas para la IA, pero **no** es el
 registro de daño: ese es `structural_damage`.
 
+**Multi-municipio desde el día uno.** El Formulario Único AIS es el estándar nacional,
+no un formato local: la misma estructura sirve para Pereira, Cali, Quibdó o cualquier
+municipio. Lo único que varía por territorio es configuración:
+
+- `municipality_code` (DANE) en cada caso. Sin esto, ser multi-ciudad exige refactor
+  después, y es lo que van a pedir si algún día esto alimenta el RUD de la UNGRD.
+- `division_type`: la sección 1 del formulario oficial dice "MANZANA **O VEREDA**". En
+  zona urbana se captura comuna/barrio; en rural, corregimiento/vereda. Mismo campo,
+  etiqueta distinta en la UI.
+- Listas de barrios y veredas en **tabla de referencia** (`territorial_divisions`),
+  nunca hardcodeadas ni en enum.
+- Los sistemas constructivos de zona rural del Pacífico ya tienen código AIS asignado
+  (41, 42 madera; 51 bahareque; 52 tapia). No hay que inventar nada — pero sí garantizar
+  que los umbrales de grieta de T3 los cubran, porque aplicar los de concreto a una
+  vivienda de bahareque produce falsos rojos masivos.
+
 ### T2 — Migración `0005_reviewer_credentials.sql`
 
 ```sql
@@ -141,10 +160,14 @@ paquete todavía) con:
 - `deriveHabitability(risks): Result` — el algoritmo de arriba, con tests unitarios que
   cubran los cuatro caminos y el caso `count(high) > 2`.
 - `damageLevelThresholds(structuralSystem)` — devuelve los rangos de ancho de grieta.
-  **No hardcodear un umbral global.** Los valores están en `docs/marco-normativo.md`,
-  sección "Umbrales de grieta". Resumen: concreto `<0.2 / 0.2–1.0 / 1.0–2.0 / >2.0+refuerzo
-  expuesto / aplastamiento`; mampostería `<0.2 / 0.2–1.0 / 1.0–3.0 / >3.0 / desprendimiento`;
-  tapia-adobe `<0.4 / 0.4–2.0 / 2.0–4.0 / >4.0 / aplastamiento`.
+  **No hardcodear un umbral global.** Los valores verificados están en
+  `docs/marco-normativo.md`, sección "Umbrales de grieta": concreto `<0.2 / 0.2–1.0 /
+  1.0–2.0 / >2.0+refuerzo expuesto / aplastamiento`; mampostería `<0.2 / 0.2–1.0 /
+  1.0–3.0 / >3.0 / desprendimiento`; tapia-adobe `<0.4 / 0.4–2.0 / 2.0–4.0 / >4.0 /
+  aplastamiento`. ⚠️ **Bahareque (51), acero (31–33), madera (41–42) y entrepisos NO
+  tienen umbrales verificados todavía** — ver "Vacíos conocidos" abajo. Para esos
+  sistemas la función debe devolver `null`/`unknown`, y la UI debe pedir clasificación
+  manual del nivel de daño en vez de sugerirlo.
 - `routeCase(case): RequiredSpecialty` — reglas de enrutamiento (ver T4).
 
 Este módulo se consume desde la app de revisión y, en fase 2, desde el servicio de IA.
@@ -237,6 +260,43 @@ BD en inglés, como ya está definido.
 
 ---
 
+## Vacíos conocidos — PROHIBIDO inventar
+
+El PDF público del manual AIS se trunca hacia la página 40 de 71. Estas tablas **no
+están verificadas** y sus valores no deben estimarse, extrapolarse ni generarse:
+
+| Falta | Afecta a |
+|---|---|
+| Tabla 3-8: niveles de daño en **bahareque** (≠ tapia) | Umbrales del sistema 51 en T3 |
+| Tabla 3-9: daño en **acero** | Sistemas 31–33 |
+| Tabla 3-10: daño en **madera** | Sistemas 41–42 |
+| Tabla 3-11: daño en **entrepisos** | Cuarto elemento de la matriz 5.3 |
+| Tabla 3-12: elementos que saturan el daño global | Regla de agravamiento |
+| Tabla 3-13: severidad+extensión → **riesgo estructural** | El helper de sugerencia de riesgo en `/revisar` |
+| Tabla 3-21: definición del **riesgo no estructural** | Posible asimetría: en el formulario impreso ese riesgo parece tener solo 3 niveles (sin "muy alto") |
+
+Regla de implementación mientras tanto:
+
+1. Modelar los umbrales como **datos** (tabla `damage_thresholds` o JSON versionado),
+   nunca como constantes en código. Las filas faltantes se insertan cuando lleguen.
+2. Para sistemas sin umbral verificado, `damageLevelThresholds()` devuelve `unknown` y
+   la UI pide al revisor clasificar el nivel manualmente, sin sugerencia automática.
+3. El helper "riesgo estructural sugerido" (que depende de la tabla 3-13) **no se
+   construye aún**: en v1 el revisor asigna los cuatro riesgos a mano y el sistema solo
+   deriva el color. Eso ya es conforme al formulario oficial.
+4. Marcar cada dato pendiente con `-- TODO(tabla 3-X)` para poder rastrearlos.
+
+Datos nuevos sí verificados en la segunda lectura (usar con confianza):
+- Riesgo de estabilidad global (tabla 3-2): muy alto = colapso >50% / notablemente
+  inclinado; alto = colapso 5–50% sin riesgo de colapso progresivo; bajo después de
+  medidas = colapso o inclinación puntual <5% apuntalable; bajo = nada de lo anterior.
+- Regla de inclinación: >2° (desplome > 1/30 de la altura; >8 cm por piso de 2,5 m) =
+  alto riesgo en pórticos de varios pisos; deriva residual en cualquier piso de un
+  edificio alto de pórticos = muy alto riesgo.
+- Riesgo geotécnico (tabla 3-3): completa en `docs/marco-normativo.md`.
+
+---
+
 ## Lo que NO hay que cambiar
 
 - La arquitectura general (Kobo + Supabase + React + Leaflet) sigue siendo correcta.
@@ -256,6 +316,8 @@ BD en inglés, como ya está definido.
       contra RLS, no solo en UI)
 - [ ] Ciclo completo: submission Kobo con el nuevo formulario → `cases` con todos los
       campos poblados → dictamen con los cuatro riesgos → color derivado correcto
+- [ ] Un caso rural (vereda, sistema constructivo 51 bahareque) y uno urbano (barrio,
+      sistema 21 mampostería confinada) conviven en la misma base con umbrales distintos
 
 ---
 
@@ -266,3 +328,9 @@ Asociación de Ingenieros de Risaralda, y hay al menos una plataforma competidor
 El cuello de botella observado es **consolidación y coordinación**, no captura. Si hay que
 recortar alcance, recortar por el lado de la IA y de la captura propia; nunca por el lado
 del dashboard, la cola de revisión y la trazabilidad del dictamen.
+
+**Sobre el alcance geográfico:** hay operativos activos en Pereira, Cali y Chocó. El
+software es **uno solo** — el formulario es nacional y los umbrales por material ya cubren
+los tres contextos. Lo que no se paraleliza es la relación institucional: cada despliegue
+exige su propio interlocutor. Construir multi-municipio desde el esquema (T1) cuesta poco
+ahora y evita un refactor caro después; salir a vender en tres ciudades a la vez, no.
