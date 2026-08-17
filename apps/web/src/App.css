@@ -190,19 +190,21 @@ button.linklike {
   font-weight: 400;
   opacity: 0.8;
 }
+/* Semáforo AIS: tonos bien separados entre sí; el texto del estado siempre
+   acompaña al color (el color nunca es el único canal) */
 .derived-green {
-  background: #14532d;
+  background: #166534;
   color: #fff;
 }
 .derived-yellow {
-  background: #b45309;
-  color: #fff;
+  background: #fde047;
+  color: #1c1917;
 }
 .derived-orange {
-  background: #c2410c;
-  color: #fff;
+  background: #f97316;
+  color: #1c1917;
 }
 .derived-red {
-  background: #991b1b;
+  background: #b91c1c;
   color: #fff;
 }
