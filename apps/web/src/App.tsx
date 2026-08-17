@@ -9,6 +9,7 @@ import RegisterReviewer from './pages/RegisterReviewer'
 import Queue from './pages/Queue'
 import CaseDetail from './pages/CaseDetail'
 import MapPage from './pages/MapPage'
+import Dashboard from './pages/Dashboard'
 import './App.css'
 
 function App() {
@@ -62,6 +63,7 @@ function App() {
         <nav className="topbar-nav">
           <NavLink to="/">{t('app:queue.title')}</NavLink>
           <NavLink to="/mapa">{t('app:map.title')}</NavLink>
+          <NavLink to="/tablero">{t('app:dash.nav')}</NavLink>
         </nav>
         <div className="topbar-user">
           <span>
@@ -79,6 +81,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Queue reviewer={reviewer} />} />
         <Route path="/mapa" element={<MapPage />} />
+        <Route path="/tablero" element={<Dashboard />} />
         <Route path="/caso/:id" element={<CaseDetail reviewer={reviewer} />} />
       </Routes>
     </BrowserRouter>

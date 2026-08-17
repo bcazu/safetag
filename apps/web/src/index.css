@@ -20,6 +20,19 @@
   --sem-red-text: #ffffff;
   --sem-site-visit-text: #ffffff;
   --sem-none-text: #ffffff;
+
+  /* Tokens de dataviz (dashboard). Paleta validada con el validador del
+     skill dataviz contra --bg en claro y oscuro (CVD y contraste PASS):
+     categórica azul/naranja, rampa ordinal azul para prioridad. */
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-ord-low: #86b6ef;
+  --viz-ord-mid: #2a78d6;
+  --viz-ord-high: #104281;
+  --viz-fill: #2a78d6;
+  --viz-track: #cde2fb;
+  --viz-grid: #e4e4e7;
+  --viz-muted: #71717a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,6 +41,17 @@
     --surface: #27272a;
     --border: #3f3f46;
     --accent: #60a5fa;
+
+    /* Pasos oscuros de la misma paleta (validados contra --bg oscuro) */
+    --viz-1: #3987e5;
+    --viz-2: #d95926;
+    --viz-ord-low: #184f95;
+    --viz-ord-mid: #3987e5;
+    --viz-ord-high: #86b6ef;
+    --viz-fill: #3987e5;
+    --viz-track: #0d366b;
+    --viz-grid: #2c2c2e;
+    --viz-muted: #a1a1aa;
   }
 }
 
