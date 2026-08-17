@@ -12,11 +12,6 @@
   "engines": {
     "node": ">=20"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "supabase"
-    ]
-  },
   "devDependencies": {
     "supabase": "^2.114.0"
   }

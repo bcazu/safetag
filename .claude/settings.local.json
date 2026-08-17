@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(git add *)",
-      "Bash(git commit --quiet -m 'Corregir motor de reglas contra los '\\\\''Vacíos conocidos'\\\\'' del handoff *)"
+      "Bash(git commit --quiet -m 'Corregir motor de reglas contra los '\\\\''Vacíos conocidos'\\\\'' del handoff *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm --filter @safetag/rules test)",
+      "Bash(git commit --quiet -m 'Agregar CLAUDE.md del proyecto y silenciar warning de pnpm *)"
     ]
   }
 }
