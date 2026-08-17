@@ -2,10 +2,14 @@
 
 Aquí vive el formulario de captura en campo para KoboToolbox.
 
-- `atc20.xlsx` — XLSForm del formulario. Se regenera con un script si hay que
-  cambiarlo, o se edita directo en Excel/LibreOffice (hojas `survey`,
-  `choices`, `settings`). Validar cambios con
-  `pip install pyxform && xls2xform kobo/atc20.xlsx /tmp/out.xml`.
+- `atc20.xlsx` — XLSForm del formulario. **No editarlo a mano**: se genera con
+  `gen_xlsform.py` (ver instrucciones de uso y validación en su docstring).
+- Multiidioma: los textos usan columnas `label::Español (es)`; para sumar un
+  idioma se añade a `LANGS` en el generador y se completan los diccionarios
+  de traducción. KoboCollect y Enketo muestran el selector de idioma solos.
+  Al cambiar el formulario, subir el nuevo xlsx con **Replace form** en Kobo
+  y volver a hacer Deploy (los `name` de los campos no deben cambiar: son el
+  contrato con el webhook).
 - El formulario debe validarse con un ingeniero estructural antes del piloto.
 
 ## Campos y mapeo al esquema

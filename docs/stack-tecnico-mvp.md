@@ -160,6 +160,21 @@ El contexto lo justifica: brigadistas entrando a zonas con estructuras dañadas 
 
 ---
 
+## 4.1 Internacionalización
+
+Todo preparado para sumar idiomas; por ahora solo español:
+
+- **Apps**: i18next vía el paquete compartido `@safetag/i18n` — ahí viven los
+  términos de dominio (semáforo, estados, señales de alarma) que traducen los
+  slugs estables de la BD; cada app aporta sus strings propios en el
+  namespace `app`. Sumar un idioma = un `common.json` nuevo + una entrada en
+  `SUPPORTED_LANGUAGES`.
+- **Formulario Kobo**: columnas `label::Idioma (cod)` del estándar XLSForm,
+  generadas por `kobo/gen_xlsform.py` (`LANGS`); el selector de idioma en
+  KoboCollect/Enketo es automático.
+- **BD**: no guarda texto visible — solo slugs (`pending`, `grietas_x`), la
+  traducción es responsabilidad del cliente.
+
 ## 5. Esquema de datos (núcleo)
 
 Identificadores en inglés (convención); los campos del XLSForm de Kobo quedan

@@ -1,0 +1,84 @@
+{
+  "app": {
+    "name": "SafeTag"
+  },
+  "case": {
+    "singular": "Caso",
+    "plural": "Casos",
+    "status": {
+      "pending": "Pendiente",
+      "in_review": "En revisión",
+      "assessed": "Dictaminado"
+    },
+    "field": {
+      "address": "Dirección",
+      "neighborhood": "Barrio / comuna",
+      "construction_system": "Sistema constructivo",
+      "num_floors": "Número de pisos",
+      "warning_signs": "Señales de alarma",
+      "priority": "Prioridad"
+    }
+  },
+  "assessment": {
+    "singular": "Dictamen",
+    "plural": "Dictámenes",
+    "result": {
+      "green": "Verde — habitable",
+      "yellow": "Amarillo — uso restringido",
+      "red": "Rojo — inseguro",
+      "site_visit": "Requiere visita presencial"
+    },
+    "notes": "Observaciones",
+    "signedAt": "Firmado el"
+  },
+  "constructionSystem": {
+    "mamposteria_confinada": "Mampostería confinada",
+    "mamposteria_no_confinada": "Mampostería no confinada",
+    "porticos_concreto": "Pórticos de concreto",
+    "otro": "Otro / no identificable"
+  },
+  "warningSign": {
+    "grietas_x": "Grietas en X en muros",
+    "grietas_horizontales_base": "Grietas horizontales en base de columnas",
+    "refuerzo_expuesto": "Refuerzo expuesto",
+    "pisos_desnivelados": "Pisos desnivelados o inclinados",
+    "separacion_muro_estructura": "Separación muro-estructura",
+    "grietas_3mm": "Grietas > 3 mm",
+    "ninguna": "Ninguna"
+  },
+  "photoType": {
+    "fachada": "Fachada completa",
+    "esquina_1": "Esquina 1",
+    "esquina_2": "Esquina 2",
+    "esquina_3": "Esquina 3",
+    "esquina_4": "Esquina 4",
+    "grieta": "Peor grieta",
+    "columnas": "Columnas del primer piso"
+  },
+  "brigade": {
+    "member": "Brigadista",
+    "members": "Brigadistas",
+    "status": {
+      "active": "Disponible",
+      "on_mission": "En misión",
+      "off_duty": "Fuera de servicio"
+    }
+  },
+  "alert": {
+    "singular": "Alerta",
+    "plural": "Alertas",
+    "type": {
+      "panic": "Botón de pánico",
+      "missed_checkin": "Check-in vencido"
+    },
+    "open": "Abierta",
+    "handled": "Atendida"
+  },
+  "common": {
+    "loading": "Cargando…",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "language": "Idioma"
+  }
+}
