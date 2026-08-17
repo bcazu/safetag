@@ -297,6 +297,27 @@ Datos nuevos sí verificados en la segunda lectura (usar con confianza):
 
 ---
 
+## Pendiente: revisión presencial (decidir con el gremio)
+
+Hoy el 100% de los dictámenes son remotos por construcción (brigadista documenta
+por Kobo → ingeniero evalúa por fotos en `/revisar`), y por eso `allowedResults`
+es fijo en `'remote'` (sin verde). No existe vía para registrar lo que un
+ingeniero evalúa estando en el predio. Dos diseños posibles, compatibles entre sí:
+
+1. **Vía app**: columna `assessments.modality` (`'remote'|'field'`, default
+   remote) + toggle en `/revisar`; solo `'field'` habilita verde. Falta decidir
+   qué autoriza a marcar presencial (¿dictamen remoto previo con `site_visit`?
+   ¿rol? ¿evidencia de presencia?).
+2. **Vía Kobo**: formulario AIS completo para comisiones de ingenieros
+   (secciones 5.x con riesgos, 7 y 14 con firma); el webhook crea caso +
+   dictamen de una vez. Es el flujo de papel clásico digitalizado — encaja con
+   brigadas profesionales tipo Escuela Colombiana.
+
+Preguntas para la reunión con la AIR: quién autoriza visitas, si aceptan el
+dictamen remoto como insumo, y cómo registran hoy las evaluaciones presenciales.
+
+---
+
 ## Lo que NO hay que cambiar
 
 - La arquitectura general (Kobo + Supabase + React + Leaflet) sigue siendo correcta.
