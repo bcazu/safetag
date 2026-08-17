@@ -120,7 +120,9 @@ python kobo/gen_xlsform.py && xls2xform kobo/ais.xlsx /tmp/ais.xml
   Kobo; las fotos son best-effort para no duplicar casos por reintento.
 - `cases` tiene grants de SELECT **por columna** (0006 excluye la PII):
   `select('*')` desde el cliente falla con 42501 — usar siempre lista
-  explícita de columnas.
+  explícita de columnas. Y toda migración que agregue una columna a `cases`
+  debe incluir su `grant select (col) to authenticated` o los selects que la
+  pidan fallan con 403 (pasó con 0009 → fix en 0010).
 
 ## Datos personales (Ley 1581)
 
