@@ -381,7 +381,9 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
               ))}
             </select>
           </label>
-          <p className="hint">{t('app:assessment.remoteNote')}</p>
+          {derived === 'green' && (
+            <p className="notice">{t('app:assessment.remoteNote')}</p>
+          )}
 
           {derived && result && result !== derived && (
             <label>
