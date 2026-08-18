@@ -109,6 +109,8 @@
     "loading": "Cargando casos…",
     "priorityShort": "prioridad",
     "requires": "Requiere: {{specialties}}",
+    "assignedToMe": "Lo tengo yo",
+    "assignedToOther": "Tomado por otro revisor",
     "open": "Revisar"
   },
   "case": {
