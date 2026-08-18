@@ -2,6 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { routeCase } from '@safetag/rules'
 import { supabase } from '../lib/supabase'
+import {
+  casesCsv,
+  casesGeoJson,
+  downloadFile,
+  exportFilename,
+  fetchExportRows,
+} from '../lib/export'
 import { communeLabel, divisionNames } from '../lib/territory'
 import type { CaseRow } from '../lib/types'
 
@@ -55,6 +62,8 @@ export default function Dashboard() {
   const [mun, setMun] = useState<string>('all')
   const [tip, setTip] = useState<Tip | null>(null)
   const [divNames, setDivNames] = useState<Map<string, string>>()
+  const [exporting, setExporting] = useState<'csv' | 'geojson' | null>(null)
+  const [exportErr, setExportErr] = useState<string | null>(null)
 
   useEffect(() => {
     divisionNames().then(setDivNames)
@@ -182,6 +191,28 @@ export default function Dashboard() {
     return days
   }, [daily, mun])
 
+  // Consolidado para el PMU (backlog #9): respeta el filtro de municipio.
+  // Sin PII (contact/occupancy) ni trazabilidad interna (comments,
+  // inspector_code) — ver lib/export.ts.
+  async function onExport(fmt: 'csv' | 'geojson') {
+    setExporting(fmt)
+    setExportErr(null)
+    try {
+      const rows = await fetchExportRows(mun)
+      const content =
+        fmt === 'csv'
+          ? casesCsv(rows, t, divNames)
+          : casesGeoJson(rows, t, divNames)
+      const mime =
+        fmt === 'csv' ? 'text/csv;charset=utf-8' : 'application/geo+json'
+      downloadFile(exportFilename(mun, fmt), mime, content)
+    } catch (e) {
+      setExportErr(e instanceof Error ? e.message : String(e))
+    } finally {
+      setExporting(null)
+    }
+  }
+
   if (error) return <main className="page error">{error}</main>
   if (!territory) return <main className="page">{t('common.loading')}</main>
 
@@ -201,6 +232,29 @@ export default function Dashboard() {
             </option>
           ))}
         </select>
+        <button
+          type="button"
+          disabled={exporting !== null}
+          onClick={() => onExport('csv')}
+        >
+          {exporting === 'csv'
+            ? t('app:export.exporting')
+            : t('app:export.csv')}
+        </button>
+        <button
+          type="button"
+          disabled={exporting !== null}
+          onClick={() => onExport('geojson')}
+        >
+          {exporting === 'geojson'
+            ? t('app:export.exporting')
+            : t('app:export.geojson')}
+        </button>
+        {exportErr && (
+          <span className="error">
+            {t('app:export.error', { message: exportErr })}
+          </span>
+        )}
       </div>
 
       <div className="kpis">
