@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  NONSTRUCTURAL_RISK_LEVELS,
+  RISK_LEVELS,
   allowedResults,
   deriveHabitability,
+  riskLevelsFor,
   type RiskLevel,
   type Risks,
 } from "../src/index";
@@ -71,6 +74,34 @@ describe("deriveHabitability (AIS sección 7)", () => {
         risks("very_high", "low_after_measures", "high", "low"),
       ),
     ).toBe("red");
+  });
+});
+
+describe("riskLevelsFor (niveles válidos por riesgo)", () => {
+  it("no estructural: solo tres niveles, sin 'very_high' (tabla 3-21)", () => {
+    expect(riskLevelsFor("nonstructural")).toEqual([
+      "low",
+      "low_after_measures",
+      "high",
+    ]);
+    expect(riskLevelsFor("nonstructural")).not.toContain("very_high");
+    expect(riskLevelsFor("nonstructural")).toBe(NONSTRUCTURAL_RISK_LEVELS);
+  });
+
+  it("los otros tres riesgos conservan los cuatro niveles", () => {
+    for (const risk of [
+      "globalStability",
+      "geotechnical",
+      "structural",
+    ] as const) {
+      expect(riskLevelsFor(risk)).toBe(RISK_LEVELS);
+    }
+  });
+
+  it("defensivo: deriveHabitability sigue aceptando 'very_high' legado en no estructural", () => {
+    expect(deriveHabitability(risks("low", "low", "low", "very_high"))).toBe(
+      "red",
+    );
   });
 });
 

@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import {
   AIS_STRUCTURAL_SYSTEMS,
   RISK_CRITERIA,
-  RISK_LEVELS,
   allowedResults,
   damageLevelThresholds,
   deriveHabitability,
+  riskLevelsFor,
   routeCase,
   type RiskLevel,
   type Risks,
@@ -513,7 +513,8 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
                       <option value="">
                         {t('app:assessment.selectLevel')}
                       </option>
-                      {RISK_LEVELS.map((l) => (
+                      {/* Tabla 3-21: el riesgo no estructural solo tiene 3 niveles */}
+                      {riskLevelsFor(key).map((l) => (
                         <option key={l} value={l}>
                           {t(`riskLevel.${l}`)}
                         </option>
@@ -528,7 +529,7 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
                         })}
                       </summary>
                       <ul>
-                        {RISK_LEVELS.map((l) => (
+                        {riskLevelsFor(key).map((l) => (
                           <li key={l}>
                             <strong>{t(`riskLevel.${l}`)}:</strong>{' '}
                             {criteria.criteria[l]}

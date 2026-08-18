@@ -13,6 +13,27 @@ export const RISK_LEVELS = [
 ] as const;
 export type RiskLevel = (typeof RISK_LEVELS)[number];
 
+// Tabla 3-21 (verificada en docs/manual-ais-tablas-verificadas.md): el riesgo
+// NO estructural solo tiene TRES niveles — no existe 'very_high' para él.
+export const NONSTRUCTURAL_RISK_LEVELS = [
+  "low",
+  "low_after_measures",
+  "high",
+] as const;
+export type NonstructuralRiskLevel =
+  (typeof NONSTRUCTURAL_RISK_LEVELS)[number];
+
+export type RiskKind = keyof Risks;
+
+/**
+ * Niveles válidos para cada riesgo. La UI debe ofrecer SOLO estos:
+ * los tres riesgos estructurales/geotécnicos usan los cuatro niveles;
+ * el no estructural, tres (tabla 3-21).
+ */
+export function riskLevelsFor(risk: RiskKind): ReadonlyArray<RiskLevel> {
+  return risk === "nonstructural" ? NONSTRUCTURAL_RISK_LEVELS : RISK_LEVELS;
+}
+
 export interface Risks {
   globalStability: RiskLevel;
   geotechnical: RiskLevel;
@@ -43,6 +64,10 @@ export function deriveHabitability(risks: Risks): HabitabilityResult {
   ];
 
   const highs = levels.filter((l) => l === "high").length;
+  // Nota tabla 3-21: el riesgo no estructural NO contempla 'very_high'
+  // (solo low | low_after_measures | high). Aquí se acepta igual de forma
+  // defensiva por datos legados (dictámenes previos a la migración 0018):
+  // si llegara, cae en rojo como cualquier 'very_high'.
   if (levels.includes("very_high") || highs > 2) return "red";
   if (highs > 0) return "orange";
   if (levels.includes("low_after_measures")) return "yellow";
