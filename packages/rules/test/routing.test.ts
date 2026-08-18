@@ -17,10 +17,16 @@ describe("routeCase (AIS + Ley 842 art. 19)", () => {
 
   it("asentamiento o falla en talud exigen geotecnista", () => {
     expect(
-      routeCase({ buildingUse: 1, geotechnical: { settlement: "general" } }),
+      routeCase({ buildingUse: 1, geotechnical: { settlement: "evident" } }),
     ).toEqual(["geotechnical"]);
     expect(
-      routeCase({ buildingUse: 1, geotechnical: { slopeFailure: "localized" } }),
+      routeCase({ buildingUse: 1, geotechnical: { settlement: "suspected" } }),
+    ).toEqual(["geotechnical"]);
+    expect(
+      routeCase({
+        buildingUse: 1,
+        geotechnical: { slope_failure: "localized" },
+      }),
     ).toEqual(["geotechnical"]);
   });
 
@@ -28,14 +34,17 @@ describe("routeCase (AIS + Ley 842 art. 19)", () => {
     expect(
       routeCase({
         buildingUse: 1,
-        geotechnical: { settlement: "none", slopeFailure: "none" },
+        geotechnical: { settlement: "none", slope_failure: "none" },
       }),
     ).toEqual([]);
   });
 
   it("un colegio con falla en talud exige ambas especialidades", () => {
     expect(
-      routeCase({ buildingUse: 3, geotechnical: { slopeFailure: "general" } }),
+      routeCase({
+        buildingUse: 3,
+        geotechnical: { slope_failure: "general" },
+      }),
     ).toEqual(["structural", "geotechnical"]);
   });
 });

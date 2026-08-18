@@ -1,7 +1,9 @@
 // Edge Function: webhook de KoboToolbox → inserta caso en `cases` y sus fotos
 // en Storage (`photos`) + `public.photos`.
 // Los campos del submission llegan con los nombres del XLSForm (kobo/ais.xlsx,
-// en español); aquí se mapean a las columnas en inglés del esquema (0004).
+// en español); aquí se mapean a las columnas en inglés del esquema (0004/0017).
+// Desde la v2 el formulario agrupa en páginas: Kobo entrega cada campo como
+// `grupo/campo`, así que TODO acceso pasa por field() — nunca submission.x.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Preguntas de imagen del XLSForm → photo_type (prefijo `foto_` fuera)
@@ -68,6 +70,34 @@ const GLOBAL_DAMAGE: Record<string, string> = {
   "60_100": "60_100",
   "100": "100",
 };
+// sección 5.2 (captura v2) — va dentro del jsonb `geotechnical`
+const SETTLEMENT: Record<string, string> = {
+  evidente: "evident",
+  dudas: "suspected",
+  ninguno: "none",
+};
+const SLOPE_FAILURE: Record<string, string> = {
+  general: "general",
+  puntual: "localized",
+  ninguna: "none",
+};
+// sección 11 (solo el dato no sensible)
+const INHABITED: Record<string, string> = {
+  si: "yes",
+  no: "no",
+  no_se_sabe: "unknown",
+};
+// peligros exteriores (indicadores tabla 3-21) → nonstructural_damage.hazards
+const HAZARD: Record<string, string> = {
+  fachada_balcon: "facade_or_parapet",
+  cubierta_tejas: "roof_elements",
+  cielo_raso: "ceilings",
+  tanque_elevado: "elevated_tank",
+  gas: "gas_leak",
+  electricas: "power_lines_down",
+  quimicos: "chemical_spill",
+  escombros_via: "debris_on_road",
+};
 
 // campo del formulario (sin prefijo dano_) → clave en structural_damage.elements
 const DAMAGE_ELEMENTS: Record<string, string> = {
@@ -116,19 +146,6 @@ function parseGeopoint(value: unknown): { lat: number; lon: number } | null {
   return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null;
 }
 
-/** Dirección legible: "Carrera 7 # 45-12 — La finca junto al puente" */
-function buildAddress(s: Submission): string | null {
-  const via = [
-    mapped(VIA_TIPO, s.via_tipo),
-    text(s.via_numero),
-  ].filter(Boolean).join(" ");
-  const placa = text(s.numero_placa);
-  const street = via ? (placa ? `${via} # ${placa}` : via) : null;
-  const parts = [street, text(s.referencia_ubicacion)].filter(Boolean);
-  // fallback: campo `direccion` del formulario anterior a T5b
-  return parts.length > 0 ? parts.join(" — ") : text(s.direccion);
-}
-
 /** Kobo entrega los campos de un grupo con la ruta `grupo/campo` */
 function field(s: Submission, name: string): unknown {
   if (name in s) return s[name];
@@ -136,49 +153,18 @@ function field(s: Submission, name: string): unknown {
   return key ? s[key] : null;
 }
 
-/** cat_sector-cat_manzana-cat_predio-cat_mejora; NULL si todos vacíos */
-function cadastralId(s: Submission): string | null {
-  const parts = ["cat_sector", "cat_manzana", "cat_predio", "cat_mejora"]
-    .map((name) => text(field(s, name)))
-    .filter(Boolean);
-  // fallback: campo `id_catastral` del formulario anterior a T5b
-  return parts.length > 0 ? parts.join("-") : text(s.id_catastral);
+/** select_multiple: string separado por espacios → slugs BD (los no mapeados
+ * se descartan; 'ninguna'/'ninguno' produce array vacío) */
+function multi(
+  table: Record<string, string>,
+  value: unknown,
+): string[] | null {
+  const raw = text(value);
+  if (raw == null) return null;
+  return raw.split(/\s+/)
+    .map((v) => table[v])
+    .filter((v): v is string => Boolean(v));
 }
-
-/** Matriz 5.3: {beams: {level, extent_pct}, ...} solo con elementos reportados */
-function structuralDamage(s: Submission): object | null {
-  // deno-lint-ignore no-explicit-any
-  const elements: Record<string, any> = {};
-  for (const [field, key] of Object.entries(DAMAGE_ELEMENTS)) {
-    const level = mapped(DAMAGE_LEVEL, s[`dano_${field}`]);
-    if (!level) continue;
-    elements[key] = {
-      level,
-      extent_pct: level === "none" ? null : toInt(s[`dano_${field}_pct`]),
-    };
-  }
-
-  const stability = {
-    collapse: mapped(COLLAPSE, s.colapso),
-    tilt: mapped(TILT, s.inclinacion),
-  };
-
-  if (
-    Object.keys(elements).length === 0 &&
-    !stability.collapse &&
-    !stability.tilt
-  ) {
-    return null;
-  }
-  return { stability, elements };
-}
-
-type KoboAttachment = {
-  download_url: string;
-  filename: string;
-  mimetype: string;
-  question_xpath?: string;
-};
 
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
@@ -192,11 +178,93 @@ Deno.serve(async (req) => {
   }
 
   const submission: Submission = await req.json();
+  const f = (name: string) => field(submission, name);
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+
+  /** Dirección legible: "Carrera 7 # 45-12 — La finca junto al puente" */
+  function buildAddress(): string | null {
+    const via = [
+      mapped(VIA_TIPO, f("via_tipo")),
+      text(f("via_numero")),
+    ].filter(Boolean).join(" ");
+    const placa = text(f("numero_placa"));
+    const street = via ? (placa ? `${via} # ${placa}` : via) : null;
+    const parts = [street, text(f("referencia_ubicacion"))].filter(Boolean);
+    // fallback: campo `direccion` del formulario anterior a T5b
+    return parts.length > 0 ? parts.join(" — ") : text(f("direccion"));
+  }
+
+  /** cat_sector-cat_manzana-cat_predio-cat_mejora; NULL si todos vacíos */
+  function cadastralId(): string | null {
+    const parts = ["cat_sector", "cat_manzana", "cat_predio", "cat_mejora"]
+      .map((name) => text(f(name)))
+      .filter(Boolean);
+    // fallback: campo `id_catastral` del formulario anterior a T5b
+    return parts.length > 0 ? parts.join("-") : text(f("id_catastral"));
+  }
+
+  /** Matriz 5.3: {beams: {level, extent_pct}, ...} solo con elementos
+   * reportados, + estabilidad 5.1 y ancho de la peor grieta si se midió */
+  function structuralDamage(): object | null {
+    // deno-lint-ignore no-explicit-any
+    const elements: Record<string, any> = {};
+    for (const [name, key] of Object.entries(DAMAGE_ELEMENTS)) {
+      const level = mapped(DAMAGE_LEVEL, f(`dano_${name}`));
+      if (!level) continue;
+      elements[key] = {
+        level,
+        extent_pct: level === "none" ? null : toInt(f(`dano_${name}_pct`)),
+      };
+    }
+
+    const stability = {
+      collapse: mapped(COLLAPSE, f("colapso")),
+      tilt: mapped(TILT, f("inclinacion")),
+    };
+    const worstCrackMm = toNum(f("ancho_grieta_mm"));
+
+    if (
+      Object.keys(elements).length === 0 &&
+      !stability.collapse &&
+      !stability.tilt &&
+      worstCrackMm == null
+    ) {
+      return null;
+    }
+    return { stability, elements, worst_crack_mm: worstCrackMm };
+  }
+
+  /** Sección 5.2 observable → jsonb `geotechnical` (activa enrutamiento a
+   * geotecnista en routeCase) */
+  function geotechnical(): object | null {
+    const settlement = mapped(SETTLEMENT, f("asentamiento"));
+    const slopeFailure = mapped(SLOPE_FAILURE, f("falla_talud"));
+    const morphology = toInt(f("morfologia"));
+    if (!settlement && !slopeFailure && morphology == null) return null;
+    return {
+      settlement,
+      slope_failure: slopeFailure,
+      site_morphology: morphology,
+    };
+  }
+
+  /** Peligros exteriores (tabla 3-21) → jsonb `nonstructural_damage` */
+  function nonstructuralDamage(): object | null {
+    const hazards = multi(HAZARD, f("peligros_exterior"));
+    if (hazards == null) return null;
+    return { hazards };
+  }
+
+  // "0 No se sabe" del formulario no es un código AIS: la BD exige 1..4 o NULL
+  const yearRangeRaw = toInt(f("rango_ano"));
+  const yearRange = yearRangeRaw != null && yearRangeRaw >= 1 &&
+      yearRangeRaw <= 4
+    ? yearRangeRaw
+    : null;
 
   // GPS: `ubicacion` es la fuente de verdad; el start-geopoint de respaldo
   // (gps_fondo) y `_geolocation` son últimos recursos — nunca perder una
@@ -205,14 +273,14 @@ Deno.serve(async (req) => {
     | number
     | null
   )[];
-  const point = parseGeopoint(submission.ubicacion) ??
-    parseGeopoint(submission.gps) ?? // nombre anterior a T5b
-    parseGeopoint(submission.gps_fondo) ??
+  const point = parseGeopoint(f("ubicacion")) ??
+    parseGeopoint(f("gps")) ?? // nombre anterior a T5b
+    parseGeopoint(f("gps_fondo")) ??
     (geoLat != null && geoLon != null ? { lat: geoLat, lon: geoLon } : null);
 
   // barrio: slug de barrios.csv, u 'OTRO' + texto libre (flag para que el
   // gabinete lo resuelva por ST_Contains — assign_territorial_division)
-  const barrio = text(submission.barrio);
+  const barrio = text(f("barrio"));
   const neighborhoodUnlisted = barrio === "OTRO";
 
   const { data: caseRow, error } = await supabase
@@ -220,42 +288,49 @@ Deno.serve(async (req) => {
     .insert({
       kobo_submission_id: String(submission._id),
       // sección 2
-      inspection_type: mapped(INSPECTION_TYPE, submission.tipo_inspeccion),
+      inspection_type: mapped(INSPECTION_TYPE, f("tipo_inspeccion")),
       not_inspected_reason: mapped(
         NOT_INSPECTED_REASON,
-        submission.motivo_no_inspeccion,
+        f("motivo_no_inspeccion"),
       ),
       // ubicación (T5b; municipio = código DIVIPOLA, tal cual)
-      municipality: text(submission.municipio),
-      division_type: mapped(DIVISION_TYPE, submission.tipo_zona),
-      commune: text(submission.division_urbana) ??
-        text(submission.division_rural) ??
-        text(submission.comuna), // nombre anterior a T5b
-      neighborhood: neighborhoodUnlisted
-        ? text(submission.barrio_otro)
-        : barrio,
+      municipality: text(f("municipio")),
+      division_type: mapped(DIVISION_TYPE, f("tipo_zona")),
+      commune: text(f("division_urbana")) ??
+        text(f("division_rural")) ??
+        text(f("comuna")), // nombre anterior a T5b
+      neighborhood: neighborhoodUnlisted ? text(f("barrio_otro")) : barrio,
       neighborhood_unlisted: neighborhoodUnlisted,
-      cadastral_id: cadastralId(submission),
-      address: buildAddress(submission),
-      building_name: text(submission.nombre_edificacion),
+      cadastral_id: cadastralId(),
+      address: buildAddress(),
+      building_name: text(f("nombre_edificacion")),
       location: point ? `POINT(${point.lon} ${point.lat})` : null,
-      floors_above: toInt(submission.pisos_sobre),
-      basements: toInt(submission.sotanos),
-      building_use: toInt(submission.uso_predominante),
-      ground_floor_use: toInt(submission.uso_planta_baja),
-      front_m: toNum(submission.frente_m),
-      depth_m: toNum(submission.fondo_m),
+      floors_above: toInt(f("pisos_sobre")),
+      basements: toInt(f("sotanos")),
+      building_use: toInt(f("uso_predominante")),
+      ground_floor_use: toInt(f("uso_planta_baja")),
+      front_m: toNum(f("frente_m")),
+      depth_m: toNum(f("fondo_m")),
       // sección 4 (los slugs del formulario SON los códigos AIS)
-      structural_system: submission.sistema_estructural ?? null,
-      floor_system: submission.tipo_entrepiso ?? null,
-      year_range: toInt(submission.rango_ano),
-      // secciones 5.1 + 5.3
-      worst_damaged_floor: toInt(submission.piso_mayor_dano),
-      structural_damage: structuralDamage(submission),
+      structural_system: f("sistema_estructural") ?? null,
+      floor_system: f("tipo_entrepiso") ?? null,
+      year_range: yearRange,
+      // secciones 5.1 + 5.3 (+ ancho de grieta, captura v2)
+      worst_damaged_floor: toInt(f("piso_mayor_dano")),
+      structural_damage: structuralDamage(),
+      // sección 5.2 observable (captura v2)
+      geotechnical: geotechnical(),
+      // peligros exteriores (captura v2)
+      nonstructural_damage: nonstructuralDamage(),
       // sección 6
-      global_damage_pct: mapped(GLOBAL_DAMAGE, submission.dano_global),
+      global_damage_pct: mapped(GLOBAL_DAMAGE, f("dano_global")),
+      // sección 11 no sensible + 13 + 14 (captura v2, 0017)
+      is_inhabited: mapped(INHABITED, f("habitada")),
+      comments: text(f("comentarios")),
+      inspector_code: text(f("codigo_brigadista")),
+      commission_code: text(f("codigo_comision")),
       // señales rápidas para priorización/IA (select_multiple → array)
-      warning_signs: submission.senales_alarma?.split(" ") ?? null,
+      warning_signs: text(f("senales_alarma"))?.split(/\s+/) ?? null,
     })
     .select("id")
     .single();
@@ -274,6 +349,13 @@ Deno.serve(async (req) => {
     );
   }
 
+  type KoboAttachment = {
+    download_url: string;
+    filename: string;
+    mimetype: string;
+    question_xpath?: string;
+  };
+
   // Fotos: best-effort — si una falla se registra y se continúa, para no
   // provocar reintentos de Kobo que duplicarían el caso (23505 los corta,
   // pero dejaría fotos a medias). Recuperación manual vía API de Kobo.
@@ -285,19 +367,21 @@ Deno.serve(async (req) => {
 
   const photoErrors: string[] = [];
   if (koboToken) {
-    for (const field of PHOTO_FIELDS) {
-      const value = submission[field];
+    for (const photoField of PHOTO_FIELDS) {
+      const value = f(photoField);
       if (!value) continue;
 
-      // Kobo reemplaza espacios por guiones bajos en el nombre del archivo
+      // Kobo reemplaza espacios por guiones bajos en el nombre del archivo;
+      // question_xpath llega con la ruta del grupo (fotos/foto_fachada)
       const wanted = String(value).replace(/ /g, "_");
       const att = attachments.find(
         (a) =>
-          a.question_xpath === field ||
+          a.question_xpath === photoField ||
+          a.question_xpath?.endsWith(`/${photoField}`) ||
           a.filename.split("/").pop() === wanted,
       );
       if (!att) {
-        photoErrors.push(`${field}: sin adjunto para ${wanted}`);
+        photoErrors.push(`${photoField}: sin adjunto para ${wanted}`);
         continue;
       }
 
@@ -311,7 +395,7 @@ Deno.serve(async (req) => {
         const ext = wanted.includes(".")
           ? wanted.slice(wanted.lastIndexOf("."))
           : ".jpg";
-        const storagePath = `cases/${caseRow.id}/${field}${ext}`;
+        const storagePath = `cases/${caseRow.id}/${photoField}${ext}`;
 
         const { error: upErr } = await supabase.storage
           .from("photos")
@@ -324,12 +408,12 @@ Deno.serve(async (req) => {
         const { error: rowErr } = await supabase.from("photos").insert({
           case_id: caseRow.id,
           storage_path: storagePath,
-          photo_type: field.replace(/^foto_/, ""),
+          photo_type: photoField.replace(/^foto_/, ""),
         });
         if (rowErr) throw rowErr;
       } catch (e) {
         photoErrors.push(
-          `${field}: ${e instanceof Error ? e.message : String(e)}`,
+          `${photoField}: ${e instanceof Error ? e.message : String(e)}`,
         );
       }
     }

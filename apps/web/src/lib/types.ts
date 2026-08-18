@@ -33,8 +33,9 @@ export interface CaseRow {
     >;
   } | null;
   geotechnical: {
-    settlement?: "general" | "localized" | "none" | null;
-    slopeFailure?: "general" | "localized" | "none" | null;
+    settlement?: "evident" | "suspected" | "none" | null;
+    slope_failure?: "general" | "localized" | "none" | null;
+    site_morphology?: number | null;
   } | null;
 }
 

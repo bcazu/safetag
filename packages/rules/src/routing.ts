@@ -10,18 +10,24 @@ export type ReviewerSpecialty = "structural" | "geotechnical" | "general";
 // building_use (códigos AIS): 3 educacional, 4 salud, 8 institucional
 const STRUCTURAL_ONLY_USES = new Set([3, 4, 8]);
 
-export type GeotechnicalFinding = "general" | "localized" | "none";
+// Valores oficiales del formulario AIS (sección 5.2): el asentamiento se
+// registra como evidente/dudas/ninguno; la falla en talud como
+// general/puntual/ninguna. Claves en snake_case: es el contenido literal
+// del jsonb cases.geotechnical que arma el webhook.
+export type SettlementFinding = "evident" | "suspected" | "none";
+export type SlopeFailureFinding = "general" | "localized" | "none";
 
 export interface CaseForRouting {
   buildingUse?: number | null;
   /** Contenido de cases.geotechnical (sección 5.2 del formulario) */
   geotechnical?: {
-    settlement?: GeotechnicalFinding | null;
-    slopeFailure?: GeotechnicalFinding | null;
+    settlement?: SettlementFinding | null;
+    slope_failure?: SlopeFailureFinding | null;
+    site_morphology?: number | null;
   } | null;
 }
 
-function hasFinding(f: GeotechnicalFinding | null | undefined): boolean {
+function hasFinding(f: string | null | undefined): boolean {
   return f != null && f !== "none";
 }
 
@@ -39,7 +45,7 @@ export function routeCase(c: CaseForRouting): ReviewerSpecialty[] {
   }
   if (
     hasFinding(c.geotechnical?.settlement) ||
-    hasFinding(c.geotechnical?.slopeFailure)
+    hasFinding(c.geotechnical?.slope_failure)
   ) {
     required.push("geotechnical");
   }
