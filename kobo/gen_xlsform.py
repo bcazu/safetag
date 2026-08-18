@@ -31,7 +31,8 @@ DEFAULT_LANG = "Español (es)"
 
 I18N_COLS = ["label", "hint", "constraint_message"]
 PLAIN_COLS = ["type", "name", "required", "appearance", "relevant",
-              "constraint", "parameters", "choice_filter", "default"]
+              "constraint", "parameters", "choice_filter", "default",
+              "calculation"]
 
 # Default de municipio por despliegue (código DIVIPOLA) — parámetro, no
 # hardcode: el form desplegado para la brigada de Pereira puede llevar "66001".
@@ -128,14 +129,18 @@ survey = [
      "appearance": "minimal",
      "relevant": "${tipo_zona} = 'rural'",
      "choice_filter": "municipio_code=${municipio} and tipo='rural'"},
+    # Enketo no evalúa if() dentro de un choice_filter (FormLogicError
+    # "Too many tokens"): la división efectiva se resuelve aparte y el
+    # filtro queda con la gramática plana que sí soporta.
+    {"type": "calculate", "name": "division_sel",
+     "calculation": "if(${tipo_zona} = 'urbano', "
+                    "${division_urbana}, ${division_rural})"},
     # La fila OTRO de barrios.csv es global: el choice_filter la incluye
     # siempre para que ninguna lista incompleta bloquee una evaluación.
     {"type": "select_one_from_file barrios.csv", "name": "barrio",
      "label": {"es": "Barrio / Vereda"}, "required": "yes",
      "appearance": "minimal",
-     "choice_filter": "division_code=if(${tipo_zona} = 'urbano', "
-                      "${division_urbana}, ${division_rural}) "
-                      "or name='OTRO'"},
+     "choice_filter": "division_code=${division_sel} or name='OTRO'"},
     {"type": "text", "name": "barrio_otro", "label": {"es": "¿Cuál?"},
      "required": "yes", "relevant": "${barrio} = 'OTRO'"},
     {"type": "select_one via_tipo", "name": "via_tipo",
