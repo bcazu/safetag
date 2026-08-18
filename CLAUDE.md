@@ -22,9 +22,11 @@ priorización para el PMU. Monorepo pnpm.
 4. Ningún dictamen remoto por foto puede ser `green` (usar `allowedResults`).
 5. Umbrales de grieta **por sistema estructural**, como **datos versionados**
    (`packages/rules/src/data/*.json`), jamás constantes globales en código.
-6. **PROHIBIDO inventar** los valores de las tablas AIS no verificadas
-   (3-8 bahareque, 3-9 acero, 3-10 madera, 3-11 entrepisos, 3-12, 3-13, 3-21).
-   Para esos casos se devuelve `unknown` y se marca `TODO(tabla 3-X)`.
+6. **PROHIBIDO inventar** valores de tablas AIS no verificadas. Las tablas
+   3-8 a 3-13, 3-21 y 3-22 ya están verificadas contra el manual completo
+   (`docs/manual-ais-tablas-verificadas.md` + PDF en `docs/referencias/`);
+   los `TODO(tabla 3-X)` se resuelven contra ese documento, nunca de memoria.
+   Para cualquier otro dato sin fuente: `unknown` + `TODO`.
    Un hueco marcado > un número plausible.
 7. "Rojo" significa peligro de colapso/evacuación, **no demolición**. La opción
    de demolición se bloquea salvo `reviewers.can_recommend_demolition`.

@@ -262,8 +262,17 @@ BD en inglés, como ya está definido.
 
 ## Vacíos conocidos — PROHIBIDO inventar
 
-El PDF público del manual AIS se trunca hacia la página 40 de 71. Estas tablas **no
-están verificadas** y sus valores no deben estimarse, extrapolarse ni generarse:
+> **ACTUALIZACIÓN 17-ago-2026:** el manual completo (83 pp.) se descargó y está en
+> `docs/referencias/manual-ais-manizales-2003.pdf`. Todas las tablas de esta lista
+> quedaron **verificadas** — contenido literal en `docs/manual-ais-tablas-verificadas.md`.
+> Los `TODO(tabla 3-X)` del código pueden resolverse contra ese documento. Ojo: la
+> tabla 3-22 tiene una **contradicción interna** en el manual («dos o más» vs «más de
+> dos» riesgos ALTO para rojo); `deriveHabitability` implementa «más de dos» — la
+> decisión de cuál lectura adoptar sigue pendiente de confirmar con AIS/AIR.
+> La regla sigue vigente para cualquier dato que NO esté en ese documento.
+
+El PDF público del manual AIS se truncaba hacia la página 40 en la primera extracción.
+Estas tablas estaban sin verificar (ya no — ver arriba):
 
 | Falta | Afecta a |
 |---|---|
