@@ -124,3 +124,19 @@ Hoy el ciclo termina en `assessed` y ahí queda. Falta definir el "después":
   remotos; no se invierte en offline ahí.
 - **PWA Brigada**: el offline propio (cola local con Dexie/IndexedDB para
   check-ins y alertas) está diseñado en el stack pero **sin construir**.
+
+## 11. Import de casos de otras plataformas
+
+El operativo real es multi-actor (SismoAyuda, guía de la Escuela Colombiana,
+formatos propios de alcaldías): habrá evaluaciones hechas fuera de SafeTag
+que el PMU querrá ver en el mismo mapa y consolidado.
+
+- **Entrada**: CSV/GeoJSON con mapeo de columnas (asistente de import:
+  columna origen → campo SafeTag), mínimo ubicación + resultado + fecha.
+- **Modelo**: marcar el origen (`source: kobo | import:<plataforma>`) para
+  no mezclar trazabilidades — un caso importado no tiene fotos ni dictamen
+  propio y NO entra a la cola de revisión; es capa de visualización.
+- **Normativa**: el dictamen importado es de quien lo firmó en la otra
+  plataforma; SafeTag solo lo muestra. Nada de re-derivar habitabilidad
+  sobre datos ajenos.
+- Decidir dónde vive: ¿upload en /tablero (rol PMU) o script de gabinete?
