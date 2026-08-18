@@ -1,8 +1,62 @@
+/* ── SafeTag design tokens ──────────────────────────────────────────────────
+   Única fuente de estilo de la app. Reglas del sistema:
+   - Ningún color/medida suelta en App.css ni en componentes: siempre token.
+   - El semáforo AIS (--sem-*) es la única fuente de los colores de estado;
+     MapPage los lee con getComputedStyle. El texto siempre acompaña al color.
+   - La paleta --viz-* está validada con el validador del skill dataviz
+     (CVD y contraste PASS contra --bg claro y oscuro): no retocar a ojo.
+   - Mobile first: la app se usa en campo — targets táctiles ≥ --tap,
+     tipografía legible al sol, nav inferior en pantallas angostas. */
+
 :root {
+  /* superficie */
   --bg: #ffffff;
   --surface: #f4f4f5;
+  --surface-2: #e4e4e7;
   --border: #d4d4d8;
+  --border-strong: #a1a1aa;
+
+  /* tinta (texto) */
+  --ink: #18181b;
+  --ink-2: #52525b;
+  --ink-3: #71717a;
+
+  /* acción */
   --accent: #1d4ed8;
+  --accent-ink: #ffffff;
+  --accent-soft: #dbeafe;
+  --danger: #b3261e;
+  --danger-soft: #fde8e7;
+  --focus: #1d4ed8;
+
+  /* espaciado (base 4px) */
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.5rem;
+  --sp-6: 2rem;
+
+  /* radios */
+  --r-1: 6px;
+  --r-2: 8px;
+  --r-pill: 999px;
+
+  /* tipografía */
+  --fs-xs: 0.78rem;
+  --fs-sm: 0.85rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.15rem;
+  --fs-xl: 1.7rem;
+
+  /* sombra */
+  --shadow-1: 0 1px 3px rgba(24, 24, 27, 0.12);
+  --shadow-2: 0 2px 8px rgba(24, 24, 27, 0.18);
+
+  /* táctil / shell */
+  --tap: 2.75rem; /* 44px: mínimo de target en campo */
+  --nav-h: 3.5rem; /* nav inferior móvil */
+
   color-scheme: light dark;
 
   /* Semáforo AIS — única fuente de los colores de estado (chips, banner,
@@ -39,8 +93,23 @@
   :root {
     --bg: #18181b;
     --surface: #27272a;
+    --surface-2: #3f3f46;
     --border: #3f3f46;
+    --border-strong: #71717a;
+
+    --ink: #e4e4e7;
+    --ink-2: #a1a1aa;
+    --ink-3: #a1a1aa;
+
     --accent: #60a5fa;
+    --accent-ink: #101725;
+    --accent-soft: #1e3a5f;
+    --danger: #f2b8b5;
+    --danger-soft: #4a1f1c;
+    --focus: #93c5fd;
+
+    --shadow-1: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.6);
 
     /* Pasos oscuros de la misma paleta (validados contra --bg oscuro) */
     --viz-1: #3987e5;
@@ -59,14 +128,43 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: var(--fs-md);
   line-height: 1.5;
   background: var(--bg);
-  color: light-dark(#18181b, #e4e4e7);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* shell: columna a pantalla completa para que el mapa herede la altura
+   real sin depender de la altura del topbar (que en móvil puede envolver) */
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
   color: var(--accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (max-width: 40rem) {
+  body {
+    padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  }
+  #root {
+    min-height: calc(100dvh - var(--nav-h) - env(safe-area-inset-bottom));
+  }
 }

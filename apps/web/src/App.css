@@ -1,65 +1,107 @@
+/* Componentes de la app. Regla del design system: aquí no hay colores ni
+   medidas sueltas — todo sale de los tokens de index.css. Mobile first:
+   los estilos base son para pantalla angosta; los @media amplían. */
+
+/* ── Shell ──────────────────────────────────────────────────────────────── */
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  padding: 0.6rem 1rem;
+  gap: var(--sp-2) var(--sp-4);
+  padding: var(--sp-2) var(--sp-4);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
 .topbar h1 {
-  font-size: 1.05rem;
+  font-size: var(--fs-md);
   margin: 0;
 }
 .topbar-nav {
   display: flex;
-  gap: 0.9rem;
+  gap: var(--sp-4);
 }
 .topbar-nav a {
   text-decoration: none;
   font-weight: 600;
-  opacity: 0.7;
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
 }
 .topbar-nav a.active {
-  opacity: 1;
+  color: var(--ink);
   border-bottom: 2px solid var(--accent);
 }
 .topbar-user {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-size: 0.85rem;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+}
+
+/* nav inferior en pantalla angosta: alcance del pulgar en campo */
+@media (max-width: 40rem) {
+  .topbar-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1100; /* sobre los panes de Leaflet (~1000) */
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding-bottom: env(safe-area-inset-bottom);
+    justify-content: space-around;
+    gap: 0;
+  }
+  .topbar-nav a {
+    flex: 1;
+    min-height: var(--nav-h);
+    font-size: var(--fs-sm);
+  }
+  .topbar-nav a.active {
+    border-bottom: none;
+    border-top: 2px solid var(--accent);
+    background: var(--accent-soft);
+  }
 }
 
 .page {
+  width: 100%;
   max-width: 60rem;
   margin: 0 auto;
-  padding: 1rem;
+  padding: var(--sp-4);
 }
 .page.narrow {
   max-width: 24rem;
 }
 
+/* ── Formularios ────────────────────────────────────────────────────────── */
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 1rem;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
 }
 .stack label {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--sp-1);
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 .stack input,
 .stack select,
-.stack textarea {
+.stack textarea,
+.queue-controls select,
+.dash-filters select,
+.map-filters select {
   font: inherit;
-  padding: 0.45rem;
+  font-size: var(--fs-md); /* nunca < 16px: evita el zoom de iOS al enfocar */
+  min-height: var(--tap);
+  padding: var(--sp-2);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--r-1);
   background: var(--bg);
   color: inherit;
 }
@@ -68,26 +110,36 @@
 }
 .stack fieldset {
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--r-2);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  margin: 0;
 }
 label.check {
   flex-direction: row;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  gap: var(--sp-2);
   font-weight: 400;
+  min-height: var(--tap);
+}
+input[type='checkbox'],
+input[type='radio'] {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--accent);
 }
 
 button {
   font: inherit;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  border: 1px solid var(--border);
+  min-height: var(--tap);
+  padding: var(--sp-2) var(--sp-4);
+  border-radius: var(--r-1);
+  border: 1px solid transparent;
   background: var(--accent);
-  color: white;
+  color: var(--accent-ink);
+  font-weight: 600;
   cursor: pointer;
 }
 button:disabled {
@@ -98,71 +150,79 @@ button.linklike {
   background: none;
   border: none;
   color: var(--accent);
-  padding: 0.5rem 0;
+  padding: var(--sp-2) 0;
   text-decoration: underline;
+  font-weight: 400;
 }
 
 .notice {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.9rem;
+  border-radius: var(--r-2);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
 }
 .error {
-  color: #b3261e;
+  color: var(--danger);
   font-weight: 600;
 }
 .hint {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   font-weight: 400;
-  opacity: 0.75;
+  color: var(--ink-3);
 }
 
+/* ── Cola ───────────────────────────────────────────────────────────────── */
 .queue-controls {
   display: flex;
   align-items: center;
-  gap: 0.9rem;
+  gap: var(--sp-2) var(--sp-4);
   flex-wrap: wrap;
-  margin-bottom: 0.8rem;
-}
-.queue-controls select {
-  font: inherit;
-  padding: 0.35rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: inherit;
+  margin-bottom: var(--sp-3);
 }
 .queue-controls .check {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  font-size: 0.9rem;
+  gap: var(--sp-1);
+  font-size: var(--fs-sm);
+  min-height: var(--tap);
 }
 .pagination {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: var(--sp-3);
   justify-content: center;
-  margin-top: 1rem;
+  margin-top: var(--sp-4);
 }
 .tabs {
   display: flex;
-  gap: 0.4rem;
+  gap: var(--sp-1);
+  width: 100%;
 }
 .tab {
+  flex: 1;
   background: var(--surface);
   color: inherit;
   border: 1px solid var(--border);
+  font-weight: 400;
 }
 .tab.active {
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+@media (min-width: 40rem) {
+  .tabs {
+    width: auto;
+  }
+  .tab {
+    flex: none;
+  }
 }
 .chip {
-  border-radius: 999px;
-  padding: 0 0.6rem;
+  border-radius: var(--r-pill);
+  padding: 0 var(--sp-2);
   font-weight: 600;
 }
 
@@ -171,51 +231,61 @@ button.linklike {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: var(--sp-2);
 }
 .case-card {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.7rem 0.9rem;
+  border-radius: var(--r-2);
+  padding: var(--sp-3);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--sp-1);
 }
 .case-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 0.9rem;
-  font-size: 0.82rem;
-  opacity: 0.85;
+  gap: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--ink-2);
 }
 .badge {
   border: 1px solid var(--accent);
   color: var(--accent);
-  border-radius: 999px;
-  padding: 0 0.5rem;
+  border-radius: var(--r-pill);
+  padding: 0 var(--sp-2);
 }
 
+/* ── Detalle de caso ────────────────────────────────────────────────────── */
 .facts {
   display: grid;
-  grid-template-columns: max-content 1fr;
-  gap: 0.25rem 1rem;
-  font-size: 0.9rem;
+  grid-template-columns: 1fr; /* móvil: dt encima de dd, sin desbordes */
+  gap: var(--sp-1);
+  font-size: var(--fs-sm);
 }
 .facts dt {
   font-weight: 600;
 }
 .facts dd {
-  margin: 0;
+  margin: 0 0 var(--sp-2);
+}
+@media (min-width: 40rem) {
+  .facts {
+    grid-template-columns: max-content 1fr;
+    gap: var(--sp-1) var(--sp-4);
+  }
+  .facts dd {
+    margin: 0;
+  }
 }
 
 .damage-list {
-  font-size: 0.9rem;
+  font-size: var(--fs-sm);
 }
 
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 0.6rem;
+  gap: var(--sp-2);
 }
 .photo-grid figure {
   margin: 0;
@@ -224,35 +294,49 @@ button.linklike {
   width: 100%;
   aspect-ratio: 4/3;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: var(--r-1);
 }
 .photo-grid figcaption {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   text-align: center;
+  color: var(--ink-2);
 }
 
 .risk-row {
   border-bottom: 1px dashed var(--border);
-  padding-bottom: 0.5rem;
+  padding-bottom: var(--sp-2);
 }
 .risk-row details {
-  font-size: 0.82rem;
+  font-size: var(--fs-xs);
   font-weight: 400;
+}
+
+.assessment-card {
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
 }
 
 .derived {
   font-weight: 700;
-  padding: 0.5rem 0.8rem;
-  border-radius: 8px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-2);
   border: 1px solid var(--border);
 }
 .derived-pending {
   font-weight: 400;
-  opacity: 0.8;
+  color: var(--ink-2);
 }
+
+/* ── Mapa ───────────────────────────────────────────────────────────────── */
 .map-main {
   position: relative;
-  height: calc(100vh - 3.2rem);
+  flex: 1; /* hereda la altura del shell, sin calc frágil sobre el topbar */
+  min-height: 20rem;
 }
 .map {
   height: 100%;
@@ -260,61 +344,56 @@ button.linklike {
 }
 .map-filters {
   position: absolute;
-  top: 0.8rem;
-  left: 50%;
-  transform: translateX(-50%);
+  top: var(--sp-2);
+  left: var(--sp-2);
+  right: var(--sp-2);
   z-index: 1000;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--sp-2);
+  overflow-x: auto;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.4rem 0.6rem;
+  border-radius: var(--r-2);
+  padding: var(--sp-1) var(--sp-2);
+  box-shadow: var(--shadow-1);
 }
-.map-filters select {
-  font: inherit;
-  padding: 0.25rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: inherit;
-}
-.assessment-card {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.8rem;
-  margin-bottom: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+@media (min-width: 40rem) {
+  .map-filters {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    overflow-x: visible;
+  }
 }
 .map-legend {
   position: absolute;
-  bottom: 1.2rem;
-  left: 0.8rem;
+  bottom: var(--sp-4);
+  left: var(--sp-2);
   z-index: 1000;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.5rem 0.7rem;
+  border-radius: var(--r-2);
+  padding: var(--sp-2) var(--sp-3);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  font-size: 0.8rem;
+  gap: var(--sp-1);
+  font-size: var(--fs-xs);
+  box-shadow: var(--shadow-1);
 }
 .map-legend i {
   display: inline-block;
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 50%;
-  border: 1px solid #1f2937;
-  margin-right: 0.35rem;
+  border: 1px solid var(--border-strong);
+  margin-right: var(--sp-1);
   vertical-align: -1px;
 }
 
-/* Semáforo AIS (tokens --sem-* en index.css): tonos bien separados entre sí;
-   el texto del estado siempre acompaña al color (nunca es el único canal) */
+/* ── Semáforo AIS (tokens --sem-* en index.css) ─────────────────────────
+   Tonos bien separados entre sí; el texto del estado siempre acompaña al
+   color (nunca es el único canal). */
 .derived-green {
   background: var(--sem-green);
   color: var(--sem-green-text);
@@ -338,70 +417,64 @@ button.linklike {
 
 /* ── Dashboard (dataviz): marcas finas, grid recesivo, gaps de superficie ── */
 .dash h3 {
-  font-size: 0.95rem;
-  margin: 0 0 0.6rem;
+  font-size: var(--fs-sm);
+  margin: 0 0 var(--sp-2);
 }
 .dash-filters {
   display: flex;
-  gap: 0.6rem;
-  margin-bottom: 1rem;
-}
-.dash-filters select {
-  font: inherit;
-  padding: 0.35rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--bg);
-  color: inherit;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+  flex-wrap: wrap;
 }
 .kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
-  gap: 0.6rem;
-  margin-bottom: 1rem;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
 }
 .tile {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.6rem 0.8rem;
+  border-radius: var(--r-2);
+  padding: var(--sp-2) var(--sp-3);
   display: flex;
   flex-direction: column;
   gap: 0.1rem;
 }
 .tile-label {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--viz-muted);
 }
 .tile-value {
-  font-size: 1.7rem;
+  font-size: var(--fs-xl);
   font-weight: 600;
   line-height: 1.15;
+  font-variant-numeric: tabular-nums;
 }
 .tile-detail {
-  font-size: 0.78rem;
+  font-size: var(--fs-xs);
   color: var(--viz-muted);
 }
 .viz-card {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.9rem;
-  margin-bottom: 1rem;
+  border-radius: var(--r-2);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-4);
 }
 .dash-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: var(--sp-4);
 }
-@media (max-width: 44rem) {
+@media (min-width: 44rem) {
   .dash-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 .sem-bar {
   display: flex;
   gap: 2px; /* separación por superficie, no por bordes */
   height: 22px;
-  border-radius: 6px;
+  border-radius: var(--r-1);
   overflow: hidden;
 }
 .sem-seg {
@@ -415,16 +488,16 @@ button.linklike {
 .viz-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem 1rem;
-  margin-top: 0.55rem;
-  font-size: 0.8rem;
+  gap: var(--sp-1) var(--sp-4);
+  margin-top: var(--sp-2);
+  font-size: var(--fs-xs);
 }
 .viz-key {
   display: inline-block;
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 2px;
-  margin-right: 0.35rem;
+  margin-right: var(--sp-1);
   vertical-align: -1px;
 }
 .viz-key.line {
@@ -435,14 +508,14 @@ button.linklike {
 .meters {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: var(--sp-2);
 }
 .meter-row {
   display: grid;
   grid-template-columns: minmax(6rem, 9rem) 1fr max-content;
-  gap: 0.6rem;
+  gap: var(--sp-2);
   align-items: center;
-  font-size: 0.82rem;
+  font-size: var(--fs-xs);
 }
 .meter-label,
 .hbar-label {
@@ -453,13 +526,13 @@ button.linklike {
 .meter {
   height: 12px;
   background: var(--viz-track);
-  border-radius: 6px;
+  border-radius: var(--r-1);
   overflow: hidden;
 }
 .meter-fill {
   height: 100%;
   background: var(--viz-fill);
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 var(--r-1) var(--r-1) 0;
 }
 .meter-value {
   font-variant-numeric: tabular-nums;
@@ -467,19 +540,19 @@ button.linklike {
 .hbars {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--sp-2);
 }
 .hbar-row {
   display: grid;
   grid-template-columns: minmax(6rem, 8rem) 1fr;
-  gap: 0.6rem;
+  gap: var(--sp-2);
   align-items: center;
-  font-size: 0.82rem;
+  font-size: var(--fs-xs);
 }
 .hbar-track {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: var(--sp-2);
 }
 .hbar-fill {
   height: 16px;
@@ -533,17 +606,17 @@ button.linklike {
   z-index: 2000;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.4rem 0.6rem;
-  font-size: 0.8rem;
+  border-radius: var(--r-1);
+  padding: var(--sp-1) var(--sp-2);
+  font-size: var(--fs-xs);
   pointer-events: none;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-2);
   max-width: 16rem;
 }
 .viz-tooltip-row {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--sp-1);
 }
 .viz-tooltip-value {
   font-weight: 700;
@@ -552,20 +625,25 @@ button.linklike {
   color: var(--viz-muted);
 }
 .viz-table summary {
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   color: var(--viz-muted);
   cursor: pointer;
-  margin-top: 0.55rem;
+  margin-top: var(--sp-2);
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
 }
 .viz-table table {
   border-collapse: collapse;
-  font-size: 0.82rem;
-  margin-top: 0.4rem;
+  font-size: var(--fs-xs);
+  margin-top: var(--sp-1);
+  display: block;
+  overflow-x: auto; /* la tabla ancha scrollea sola, nunca la página */
 }
 .viz-table th,
 .viz-table td {
   text-align: left;
-  padding: 0.2rem 0.9rem 0.2rem 0;
+  padding: 0.2rem var(--sp-4) 0.2rem 0;
   border-bottom: 1px solid var(--viz-grid);
 }
 .viz-table td {

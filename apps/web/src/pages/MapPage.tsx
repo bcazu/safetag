@@ -40,6 +40,10 @@ const RESULT_COLORS: Record<string, string> = {
   site_visit: semColor('site-visit'),
 }
 const PENDING_COLOR = semColor('none')
+// trazo de los marcadores, desde el token de borde del design system
+const MARKER_STROKE = getComputedStyle(document.documentElement)
+  .getPropertyValue('--border-strong')
+  .trim()
 
 function markerColor(c: MapCase): string {
   return (c.result && RESULT_COLORS[c.result]) || PENDING_COLOR
@@ -74,7 +78,7 @@ function ClusterLayer({
     for (const c of cases) {
       const marker = L.circleMarker([c.lat, c.lng], {
         radius: 9,
-        color: '#1f2937',
+        color: MARKER_STROKE,
         weight: 1,
         fillColor: markerColor(c),
         fillOpacity: 0.9,
