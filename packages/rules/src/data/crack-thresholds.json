@@ -1,7 +1,7 @@
 {
-  "version": 1,
-  "updated": "2026-08-16",
-  "source": "Manual de Campo AIS (Comité AIS-400), ed. Manizales 2003; transcripción verificada en docs/marco-normativo-y-negocio.md, sección 'Umbrales de grieta'. El PDF público se trunca hacia la p. 40/71: las tablas marcadas con 'todo' NO están verificadas y sus valores no deben estimarse ni generarse.",
+  "version": 2,
+  "updated": "2026-08-17",
+  "source": "Manual de Campo AIS (Comité AIS-400), ed. Manizales 2003, v1.0 junio 2003 (83 pp., completo: docs/referencias/manual-ais-manizales-2003.pdf). Tablas 3-8 a 3-11 verificadas el 17-ago-2026; transcripción en docs/manual-ais-tablas-verificadas.md. Los sistemas sin tabla propia (mixta, otros) siguen en 'unknown': el revisor clasifica el nivel manualmente.",
   "systems": {
     "11": { "table": "concrete" },
     "12": { "table": "concrete" },
@@ -10,19 +10,17 @@
     "21": { "table": "masonry" },
     "22": { "table": "masonry" },
     "23": { "table": "masonry" },
-    "31": { "table": null, "todo": "TODO(tabla 3-9): niveles de daño en acero sin verificar" },
-    "32": { "table": null, "todo": "TODO(tabla 3-9): niveles de daño en acero sin verificar" },
-    "33": { "table": null, "todo": "TODO(tabla 3-9): niveles de daño en acero sin verificar" },
-    "41": { "table": null, "todo": "TODO(tabla 3-10): niveles de daño en madera sin verificar" },
-    "42": { "table": null, "todo": "TODO(tabla 3-10): niveles de daño en madera sin verificar" },
-    "51": { "table": null, "todo": "TODO(tabla 3-8): bahareque tiene tabla propia, distinta de tapia; sin verificar" },
+    "31": { "table": "steel" },
+    "32": { "table": "steel" },
+    "33": { "table": "steel" },
+    "41": { "table": "wood" },
+    "42": { "table": "wood" },
+    "51": { "table": "bahareque" },
     "52": { "table": "earthen" },
     "50": { "table": null, "todo": "sistema mixto: el manual no define una tabla propia" },
     "60": { "table": null, "todo": "otros sistemas: el manual no define una tabla propia" }
   },
-  "floorSlabs": {
-    "todo": "TODO(tabla 3-11): niveles de daño en entrepisos sin verificar; la UI no debe sugerir nivel para el elemento entrepisos"
-  },
+  "floorSlabs": { "table": "floor_slabs" },
   "tables": {
     "concrete": {
       "status": "verified",
@@ -56,7 +54,7 @@
     },
     "earthen": {
       "status": "verified",
-      "appliesTo": "tapia pisada / adobe (sistema 52). NO cubre bahareque (51): ver TODO(tabla 3-8)",
+      "appliesTo": "tapia pisada / adobe (sistema 52). NO cubre bahareque (51): tiene tabla propia (3-8)",
       "levels": [
         { "level": "none", "minWidthMm": null, "maxWidthMm": 0.4, "qualitative": null },
         { "level": "light", "minWidthMm": 0.4, "maxWidthMm": 2.0, "qualitative": null },
@@ -65,6 +63,86 @@
           "qualitative": "desplazamiento fuera del plano de pocos milímetros" },
         { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
           "qualitative": "aplastamiento local, deformación, desplome apreciable" }
+      ]
+    },
+    "bahareque": {
+      "status": "verified",
+      "appliesTo": "bahareque (sistema 51), tabla 3-8 [p. 42]. Criterios cualitativos: el manual NO define anchos de grieta en mm; distingue no-encementado y encementado",
+      "variantLabels": {
+        "non_cemented": "Bahareque no encementado",
+        "cemented": "Bahareque encementado"
+      },
+      "levels": [
+        { "level": "none", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Sin agrietamiento en los revoques" },
+        { "level": "light", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "No encementado: agrietamiento incipiente de revoques de muros con mortero de barro; uniones completamente sanas. Encementado: agrietamiento incipiente de revoques en esquinas de puertas y ventanas; uniones sanas",
+          "variants": {
+            "non_cemented": "Agrietamiento incipiente de revoques de muros con mortero de barro; uniones completamente sanas",
+            "cemented": "Agrietamiento incipiente de revoques en esquinas de puertas y ventanas; uniones sanas"
+          } },
+        { "level": "moderate", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "No encementado: agrietamiento vertical de esquinas de muros; grietas diagonales y horizontales generalizadas; desprendimiento parcial de revoques y de clavos/elementos de fijación. Encementado: grietas diagonales en algunos muros; desprendimiento incipiente de clavos y elementos de unión",
+          "variants": {
+            "non_cemented": "Agrietamiento vertical de esquinas de muros; grietas diagonales y horizontales generalizadas; desprendimiento parcial de revoques y de clavos/elementos de fijación",
+            "cemented": "Grietas diagonales en algunos muros; desprendimiento incipiente de clavos y elementos de unión"
+          } },
+        { "level": "heavy", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "No encementado: deslizamiento relativo en empalmes de muros; agrietamiento en prácticamente todos los muros; pérdida de apoyo parcial de cubierta y/o entrepisos. Encementado: grietas diagonales en la mayoría de muros; pérdidas considerables de revoque; pérdida de apoyo parcial de cubierta y/o entrepisos",
+          "variants": {
+            "non_cemented": "Deslizamiento relativo en empalmes de muros; agrietamiento en prácticamente todos los muros; pérdida de apoyo parcial de cubierta y/o entrepisos",
+            "cemented": "Grietas diagonales en la mayoría de muros; pérdidas considerables de revoque; pérdida de apoyo parcial de cubierta y/o entrepisos"
+          } },
+        { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Deformaciones permanentes importantes (posibilidad de desplome); falla de diagonales; desprendimiento de pies derechos de las soleras; pandeo perpendicular al plano del muro; falla parcial o total de cimentación; pérdida generalizada de apoyos de cubierta" }
+      ]
+    },
+    "steel": {
+      "status": "verified",
+      "appliesTo": "acero: vigas, columnas y conexiones (sistemas 31-33), tabla 3-9 [p. 46]. Criterios cualitativos, sin anchos de grieta",
+      "levels": [
+        { "level": "none", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Sin defectos visibles" },
+        { "level": "light", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Deformaciones menores casi imperceptibles" },
+        { "level": "moderate", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Deformaciones perceptibles a simple vista; pandeo incipiente de secciones" },
+        { "level": "heavy", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Pandeo local, fractura o evidencia de daño fuera de zonas de posible formación de articulaciones plásticas" },
+        { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Pandeo local, fractura o daño dentro de zonas de articulación plástica; fractura de soldaduras, tornillos o remaches" }
+      ]
+    },
+    "wood": {
+      "status": "verified",
+      "appliesTo": "madera (sistemas 41-42), tabla 3-10 [p. 47]. Criterios cualitativos, sin anchos de grieta",
+      "levels": [
+        { "level": "none", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Sin agrietamiento en el elemento" },
+        { "level": "light", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Fisuración mínima" },
+        { "level": "moderate", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Agrietamiento en el elemento; desplazamiento insignificante en uniones" },
+        { "level": "heavy", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Agrietamiento notable; deslizamiento o desplazamiento claramente perceptible en uniones" },
+        { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "Disminución de la sección transversal o rompimiento del elemento; separación o desprendimiento del sistema estructural" }
+      ]
+    },
+    "floor_slabs": {
+      "status": "verified",
+      "appliesTo": "entrepisos (superficie), tabla 3-11 [p. 48]. Mismos anchos que el concreto; fuerte y severo se definen por criterio cualitativo",
+      "levels": [
+        { "level": "none", "minWidthMm": null, "maxWidthMm": 0.2,
+          "qualitative": "fisuras casi imperceptibles" },
+        { "level": "light", "minWidthMm": 0.2, "maxWidthMm": 1.0,
+          "qualitative": "perceptible a simple vista" },
+        { "level": "moderate", "minWidthMm": 1.0, "maxWidthMm": 2.0,
+          "qualitative": "pérdida incipiente del recubrimiento" },
+        { "level": "heavy", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "agrietamiento apreciable, pérdida del recubrimiento" },
+        { "level": "severe", "minWidthMm": null, "maxWidthMm": null,
+          "qualitative": "degradación y aplastamiento del material, agrietamiento severo" }
       ]
     }
   }

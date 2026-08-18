@@ -4,5 +4,6 @@
 export * from "./habitability";
 export * from "./crack-thresholds";
 export * from "./risk-criteria";
+export * from "./saturation-elements";
 export * from "./structural-systems";
 export * from "./routing";

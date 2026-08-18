@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "updated": "2026-08-17",
+  "source": "Manual de Campo AIS (Comité AIS-400), ed. Manizales 2003, tabla 3-12 [p. 49]; transcripción verificada en docs/manual-ais-tablas-verificadas.md.",
+  "note": "Daño SEVERO en estos elementos puede saturar el daño global de la edificación (posible evacuación inmediata). El campo 'systems' es el mapeo de SafeTag a los códigos AIS de la sección 4; los sistemas 12 (muros estructurales de concreto), 14 (prefabricado), 50 (mixta) y 60 (otros) no tienen fila propia en la tabla del manual y quedan sin mapeo — no inventar una.",
+  "rows": [
+    {
+      "key": "concrete_frame",
+      "systems": ["11"],
+      "systemLabel": "Pórtico en concreto reforzado",
+      "elements": "Nudos o columnas"
+    },
+    {
+      "key": "concrete_frame_with_walls",
+      "systems": ["13"],
+      "systemLabel": "Pórtico con muros estructurales en concreto reforzado",
+      "elements": "Muros, nudos o columnas"
+    },
+    {
+      "key": "steel",
+      "systems": ["31", "32", "33"],
+      "systemLabel": "Estructuras de acero",
+      "elements": "Conexiones, columnas o riostras"
+    },
+    {
+      "key": "wood",
+      "systems": ["41", "42"],
+      "systemLabel": "Estructuras de madera",
+      "elements": "Conexiones o columnas"
+    },
+    {
+      "key": "unconfined_masonry",
+      "systems": ["23"],
+      "systemLabel": "Mampostería no confinada",
+      "elements": "Muros de carga"
+    },
+    {
+      "key": "reinforced_masonry",
+      "systems": ["22"],
+      "systemLabel": "Mampostería reforzada",
+      "elements": "Muros"
+    },
+    {
+      "key": "confined_masonry",
+      "systems": ["21"],
+      "systemLabel": "Mampostería confinada",
+      "elements": "Muros (con columnetas y vigas de confinamiento)"
+    },
+    {
+      "key": "earthen",
+      "systems": ["51", "52"],
+      "systemLabel": "Tapia, adobe o bahareque",
+      "elements": "Muros de soporte"
+    }
+  ]
+}

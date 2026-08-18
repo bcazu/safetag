@@ -5,7 +5,10 @@ import {
   CRACK_THRESHOLDS_META,
   DAMAGE_LEVELS,
   damageLevelThresholds,
+  floorSlabThresholds,
   RISK_CRITERIA,
+  SATURATION_ELEMENTS,
+  SATURATION_ELEMENTS_META,
   type AisStructuralSystem,
   type CrackThreshold,
   type DamageLevel,
@@ -23,6 +26,10 @@ function range(
 ): [number | null, number | null] {
   const t = thresholds.find((x) => x.level === level)!;
   return [t.minWidthMm, t.maxWidthMm];
+}
+
+function qualitative(thresholds: CrackThreshold[], level: DamageLevel): string {
+  return thresholds.find((x) => x.level === level)!.qualitative ?? "";
 }
 
 describe("damageLevelThresholds (AIS sección 5.3, datos versionados)", () => {
@@ -58,29 +65,73 @@ describe("damageLevelThresholds (AIS sección 5.3, datos versionados)", () => {
     expect(range(levels("21"), "moderate")[1]).toBe(3.0);
   });
 
-  it("bahareque (51) devuelve 'unknown' — la tabla 3-8 NO está verificada y es distinta de tapia", () => {
+  it("bahareque (51, tabla 3-8): verificada, CUALITATIVA (sin mm) y con variantes", () => {
     const lookup = damageLevelThresholds("51");
-    expect(lookup.status).toBe("unknown");
-    if (lookup.status === "unknown") {
-      expect(lookup.reason).toContain("TODO(tabla 3-8)");
+    expect(lookup.status).toBe("verified");
+    if (lookup.status !== "verified") return;
+    // el manual NO define anchos en mm para bahareque: todos null
+    for (const l of lookup.levels) {
+      expect(l.minWidthMm).toBeNull();
+      expect(l.maxWidthMm).toBeNull();
+    }
+    // distingue no-encementado y encementado
+    expect(lookup.variantLabels).toEqual({
+      non_cemented: "Bahareque no encementado",
+      cemented: "Bahareque encementado",
+    });
+    const moderate = lookup.levels.find((l) => l.level === "moderate")!;
+    expect(moderate.variants?.non_cemented).toMatch(/vertical de esquinas/);
+    expect(moderate.variants?.cemented).toMatch(/diagonales en algunos muros/);
+    // severo comparte criterio entre variantes: sin campo variants
+    const severe = lookup.levels.find((l) => l.level === "severe")!;
+    expect(severe.variants).toBeUndefined();
+    expect(severe.qualitative).toMatch(/desplome/);
+    // y NO hereda los umbrales de tapia
+    expect(range(lookup.levels, "none")).toEqual([null, null]);
+  });
+
+  it("acero (31-33, tabla 3-9): verificada, cualitativa; fuera/dentro de articulación plástica", () => {
+    for (const system of ["31", "32", "33"] as const) {
+      const t = levels(system);
+      for (const l of t) {
+        expect(l.minWidthMm).toBeNull();
+        expect(l.maxWidthMm).toBeNull();
+        expect(l.qualitative).toBeTruthy();
+      }
+      expect(qualitative(t, "none")).toMatch(/Sin defectos visibles/);
+      expect(qualitative(t, "heavy")).toMatch(/fuera de zonas/);
+      expect(qualitative(t, "severe")).toMatch(/dentro de zonas/);
+      expect(qualitative(t, "severe")).toMatch(/soldaduras/);
     }
   });
 
-  it("acero (3-9) y madera (3-10) devuelven 'unknown' con su TODO rastreable", () => {
-    for (const system of ["31", "32", "33"] as const) {
-      const lookup = damageLevelThresholds(system);
-      expect(lookup.status).toBe("unknown");
-      if (lookup.status === "unknown") {
-        expect(lookup.reason).toContain("TODO(tabla 3-9)");
-      }
-    }
+  it("madera (41-42, tabla 3-10): verificada, cualitativa", () => {
     for (const system of ["41", "42"] as const) {
-      const lookup = damageLevelThresholds(system);
-      expect(lookup.status).toBe("unknown");
-      if (lookup.status === "unknown") {
-        expect(lookup.reason).toContain("TODO(tabla 3-10)");
+      const t = levels(system);
+      for (const l of t) {
+        expect(l.minWidthMm).toBeNull();
+        expect(l.maxWidthMm).toBeNull();
+        expect(l.qualitative).toBeTruthy();
       }
+      expect(qualitative(t, "moderate")).toMatch(/uniones/);
+      expect(qualitative(t, "severe")).toMatch(/sección transversal/);
     }
+  });
+
+  it("entrepisos (tabla 3-11): mismos anchos que concreto en los 3 primeros niveles", () => {
+    const lookup = floorSlabThresholds();
+    expect(lookup.status).toBe("verified");
+    if (lookup.status !== "verified") return;
+    const t = lookup.levels;
+    expect(t.map((l) => l.level)).toEqual([...DAMAGE_LEVELS]);
+    expect(range(t, "none")).toEqual([null, 0.2]);
+    expect(range(t, "light")).toEqual([0.2, 1.0]);
+    expect(range(t, "moderate")).toEqual([1.0, 2.0]);
+    // fuerte y severo son cualitativos en la tabla 3-11 (sin ancho explícito)
+    expect(range(t, "heavy")).toEqual([null, null]);
+    expect(qualitative(t, "heavy")).toMatch(/apreciable/);
+    expect(range(t, "severe")).toEqual([null, null]);
+    expect(qualitative(t, "severe")).toMatch(/aplastamiento/);
   });
 
   it("mixta (50) y otros (60) devuelven 'unknown' sin romper", () => {
@@ -100,12 +151,58 @@ describe("damageLevelThresholds (AIS sección 5.3, datos versionados)", () => {
     }
   });
 
-  it("los entrepisos (tabla 3-11) están declarados como pendientes en la metadata", () => {
-    expect(CRACK_THRESHOLDS_META.floorSlabs.todo).toContain("TODO(tabla 3-11)");
+  it("la metadata refleja la verificación completa del manual (v2)", () => {
+    expect(CRACK_THRESHOLDS_META.version).toBeGreaterThanOrEqual(2);
+    expect(CRACK_THRESHOLDS_META.source).toContain(
+      "manual-ais-tablas-verificadas",
+    );
   });
 });
 
-describe("RISK_CRITERIA (tablas 3-2 y 3-3 verificadas; 3-13 y 3-21 no)", () => {
+describe("SATURATION_ELEMENTS (tabla 3-12, dato versionado, sin lógica)", () => {
+  it("trae las 8 filas del manual en orden", () => {
+    expect(SATURATION_ELEMENTS.map((r) => r.key)).toEqual([
+      "concrete_frame",
+      "concrete_frame_with_walls",
+      "steel",
+      "wood",
+      "unconfined_masonry",
+      "reinforced_masonry",
+      "confined_masonry",
+      "earthen",
+    ]);
+  });
+
+  it("cada fila tiene etiqueta y elementos del manual, y sistemas AIS válidos", () => {
+    const validCodes = Object.keys(AIS_STRUCTURAL_SYSTEMS);
+    for (const row of SATURATION_ELEMENTS) {
+      expect(row.systemLabel).toBeTruthy();
+      expect(row.elements).toBeTruthy();
+      for (const code of row.systems) {
+        expect(validCodes).toContain(code);
+      }
+    }
+  });
+
+  it("mapea acero a 31-33 y tapia/adobe/bahareque a 51-52", () => {
+    const steel = SATURATION_ELEMENTS.find((r) => r.key === "steel")!;
+    expect(steel.systems).toEqual(["31", "32", "33"]);
+    expect(steel.elements).toMatch(/riostras/);
+    const earthen = SATURATION_ELEMENTS.find((r) => r.key === "earthen")!;
+    expect(earthen.systems).toEqual(["51", "52"]);
+    expect(earthen.elements).toBe("Muros de soporte");
+  });
+
+  it("los sistemas sin fila propia en la tabla (12, 14, 50, 60) NO están mapeados", () => {
+    const mapped = new Set(SATURATION_ELEMENTS.flatMap((r) => r.systems));
+    for (const code of ["12", "14", "50", "60"]) {
+      expect(mapped.has(code as AisStructuralSystem)).toBe(false);
+    }
+    expect(SATURATION_ELEMENTS_META.note).toMatch(/sin mapeo/);
+  });
+});
+
+describe("RISK_CRITERIA (tablas 3-2 y 3-3 verificadas; 3-13 y 3-21 sin volcar)", () => {
   it("estabilidad global y geotécnico traen criterios para los 4 niveles", () => {
     for (const key of ["globalStability", "geotechnical"] as const) {
       const c = RISK_CRITERIA[key];
