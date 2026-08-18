@@ -126,7 +126,9 @@
     "warningSigns": "Señales de alarma",
     "thresholds": "Umbrales de grieta del sistema ({{appliesTo}})",
     "thresholdsUnknown": "Sin umbrales verificados para este sistema: {{reason}}. Clasifica el nivel de daño manualmente.",
-    "extent": "extensión"
+    "extent": "extensión",
+    "documentedBy": "Documentado por",
+    "commission": "comisión {{code}}"
   },
   "claim": {
     "intro": "Para dictaminar este caso primero tómalo: así ningún otro revisor trabajará sobre él en paralelo.",

@@ -68,7 +68,7 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
     supabase
       .from('cases')
       .select(
-        'id, address, neighborhood, commune, building_name, status, priority, created_at, inspection_type, not_inspected_reason, structural_system, floor_system, year_range, building_use, ground_floor_use, floors_above, basements, worst_damaged_floor, global_damage_pct, warning_signs, structural_damage, geotechnical, assigned_reviewer_id, assigned_at',
+        'id, address, neighborhood, commune, building_name, status, priority, created_at, inspection_type, not_inspected_reason, structural_system, floor_system, year_range, building_use, ground_floor_use, floors_above, basements, worst_damaged_floor, global_damage_pct, warning_signs, structural_damage, geotechnical, inspector_code, commission_code, assigned_reviewer_id, assigned_at',
       )
       .eq('id', id)
       .single()
@@ -326,6 +326,18 @@ export default function CaseDetail({ reviewer }: { reviewer: ReviewerRow }) {
                 {caseRow.warning_signs
                   .map((s) => t(`warningSign.${s}`))
                   .join(', ')}
+              </dd>
+            </>
+          )}
+          {(caseRow.inspector_code || caseRow.commission_code) && (
+            <>
+              <dt>{t('app:case.documentedBy')}</dt>
+              <dd>
+                {caseRow.inspector_code ?? '—'}
+                {caseRow.commission_code &&
+                  ` · ${t('app:case.commission', {
+                    code: caseRow.commission_code,
+                  })}`}
               </dd>
             </>
           )}

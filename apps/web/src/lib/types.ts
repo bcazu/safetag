@@ -25,6 +25,10 @@ export interface CaseRow {
   worst_damaged_floor: number | null;
   global_damage_pct: string | null;
   warning_signs: string[] | null;
+  // sección 14 AIS adaptada (0017): quién documentó — solo vistas internas,
+  // nunca en exports ni mapa (puede ser nombre = PII del brigadista)
+  inspector_code: string | null;
+  commission_code: string | null;
   structural_damage: {
     stability?: { collapse?: string | null; tilt?: string | null };
     elements?: Record<
